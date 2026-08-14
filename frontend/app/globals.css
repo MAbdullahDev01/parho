@@ -1,1 +1,96 @@
 @import "tailwindcss";
+
+@theme {
+  /* Brand colors */
+  --color-ink: #0b1120;   /* near-black navy — dark section bg / headings */
+  --color-paper: #ffffff;
+  --color-mist: #f6f8fa;  /* soft light section bg */
+  --color-line: #e4e9ef;  /* hairline borders */
+
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+
+  --color-indigo-50: #eef0ff;
+  --color-indigo-100: #e0e4ff;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+
+  /* Fonts (CSS vars come from next/font in layout.tsx) */
+  --font-display: var(--font-lexend), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+
+  /* Radius */
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(11, 17, 32, 0.04), 0 8px 24px -12px rgba(11, 17, 32, 0.12);
+  --shadow-elevated: 0 20px 60px -20px rgba(11, 17, 32, 0.35);
+
+  /* Animations */
+  --animate-ledger-pulse: ledger-pulse 3.2s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.6s ease-out both;
+}
+
+@keyframes ledger-pulse {
+  0%, 100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(100%);
+    opacity: 0.6;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-emerald-500 ring-offset-2 ring-offset-paper;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dotted ledger connector used in the Trust & Escrow section */
+.ledger-line {
+  background-image: linear-gradient(to right, #334155 50%, transparent 50%);
+  background-size: 10px 1.5px;
+  background-repeat: repeat-x;
+  background-position: center;
+}
