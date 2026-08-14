@@ -1,9 +1,10 @@
 "use client";
 
-import * as React from "react";
-import { Menu, X, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/Utils";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { GraduationCap, Menu, X } from "lucide-react";
+import * as React from "react";
 
 const links = [
   { label: "How it Works", href: "#how-it-works" },
@@ -40,12 +41,16 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button variant="ghost" size="sm">
-            Log In
-          </Button>
-          <Button variant="primary" size="sm">
-            Get Started
-          </Button>
+          <SignInButton mode="modal">
+            <Button variant="ghost" size="sm" aschild>
+              <span>Log In</span>
+            </Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button variant="primary" size="sm" aschild>
+              <span>Get Started</span>
+            </Button>
+          </SignUpButton>
         </div>
 
         <button
@@ -77,12 +82,16 @@ export function Navbar() {
             </a>
           ))}
           <div className="mt-2 flex flex-col gap-2 border-t border-line pt-4">
-            <Button variant="outline" size="sm">
-              Log In
-            </Button>
-            <Button variant="primary" size="sm">
-              Get Started
-            </Button>
+            <SignInButton mode="modal">
+              <Button variant="outline" size="sm" aschild>
+                <span>Log In</span>
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button variant="primary" size="sm" aschild>
+                <span>Get Started</span>
+              </Button>
+            </SignUpButton>
           </div>
         </nav>
       </div>
