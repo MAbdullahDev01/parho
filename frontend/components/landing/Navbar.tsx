@@ -41,13 +41,13 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <SignInButton mode="modal">
-            <Button variant="ghost" size="sm" aschild>
+          <SignInButton mode="redirect">
+            <Button variant="ghost" size="sm" asChild>
               <span>Log In</span>
             </Button>
           </SignInButton>
-          <SignUpButton mode="modal">
-            <Button variant="primary" size="sm" aschild>
+          <SignUpButton mode="redirect">
+            <Button variant="primary" size="sm" asChild>
               <span>Get Started</span>
             </Button>
           </SignUpButton>
@@ -82,13 +82,13 @@ export function Navbar() {
             </a>
           ))}
           <div className="mt-2 flex flex-col gap-2 border-t border-line pt-4">
-            <SignInButton mode="modal">
-              <Button variant="outline" size="sm" aschild>
+            <SignInButton mode="redirect">
+              <Button variant="outline" size="sm" asChild>
                 <span>Log In</span>
               </Button>
             </SignInButton>
-            <SignUpButton mode="modal">
-              <Button variant="primary" size="sm" aschild>
+            <SignUpButton mode="redirect">
+              <Button variant="primary" size="sm" asChild>
                 <span>Get Started</span>
               </Button>
             </SignUpButton>
