@@ -43,3 +43,5 @@ frontend/next-env.d.ts
 frontend/.clerk/
 
 # <------ Backend -------> #
+
+backend/venv/*
