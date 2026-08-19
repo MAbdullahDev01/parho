@@ -57,23 +57,37 @@ export function TrustBanner() {
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               Live escrow ledger
             </p>
+
+            {/* Container for steps */}
             <div className="relative mt-6 flex flex-col gap-8 sm:flex-row sm:justify-between">
+              
+              {/* Desktop Horizontal Animated Bar */}
               <div
                 aria-hidden
-                className="absolute left-5 top-5 hidden h-px w-[calc(100%-2.5rem)] overflow-hidden bg-white/10 sm:block"
+                className="absolute left-[12.5%] top-5 hidden h-[2px] w-[75%] overflow-hidden bg-white/10 sm:block"
               >
-                <div className="h-full w-1/3 animate-ledger-pulse bg-emerald-400/70" />
+                <div className="animate-beam h-full w-1/2 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399]" />
+              </div>
+
+              {/* Mobile Vertical Animated Bar */}
+              <div
+                aria-hidden
+                className="absolute left-5 top-5 block h-[calc(100%-2.5rem)] w-[2px] overflow-hidden bg-white/10 sm:hidden"
+              >
+                <div className="animate-beam-vertical h-1/2 w-full bg-gradient-to-b from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399]" />
               </div>
 
               {ledgerSteps.map((step) => (
-                <div key={step.label} className="relative flex-1 sm:text-center">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-ink sm:mx-auto">
+                <div key={step.label} className="relative z-10 flex items-start gap-4 sm:flex-1 sm:flex-col sm:items-center sm:text-center">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-ink shadow-[0_0_15px_rgba(52,211,153,0.15)] ring-4 ring-ink">
                     <step.icon className="h-4 w-4 text-emerald-400" />
                   </div>
-                  <p className="mt-3 font-display text-sm font-medium text-white">
-                    {step.label}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-400">{step.meta}</p>
+                  <div>
+                    <p className="font-display text-sm font-medium text-white">
+                      {step.label}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">{step.meta}</p>
+                  </div>
                 </div>
               ))}
             </div>

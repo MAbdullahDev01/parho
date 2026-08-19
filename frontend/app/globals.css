@@ -94,3 +94,12 @@
   background-repeat: repeat-x;
   background-position: center;
 }
+
+@keyframes beam {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-beam {
+  animation: beam 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
