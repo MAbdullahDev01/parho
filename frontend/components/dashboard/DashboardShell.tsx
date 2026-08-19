@@ -53,7 +53,7 @@ export function DashboardShell({
   const navItems = role === "student" ? studentNav : tutorNav;
   const roleLabel = role === "student" ? "Student" : "Tutor";
 
-  const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) =>
+  const renderNavLinks = (onNavigate?: () => void) =>
     navItems.map((item) => {
       const active = pathname === item.href;
       return (
@@ -84,7 +84,7 @@ export function DashboardShell({
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-6">
-          <NavLinks />
+          {renderNavLinks()}
         </nav>
 
         <div className="flex items-center gap-3 border-t border-line p-4">
@@ -116,7 +116,7 @@ export function DashboardShell({
 
       {open && (
         <nav className="space-y-1 border-b border-line bg-white px-4 py-3 lg:hidden">
-          <NavLinks onNavigate={() => setOpen(false)} />
+          {renderNavLinks(() => setOpen(false))}
         </nav>
       )}
 
