@@ -1,29 +1,57 @@
 "use client";
 
-import * as React from "react";
+import { cn } from "@/lib/Utils";
+import { UserButton } from "@clerk/nextjs";
+import {
+  CalendarClock,
+  GraduationCap,
+  LayoutGrid,
+  Menu,
+  MessageSquare,
+  Search,
+  Settings,
+  Users,
+  Wallet,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
-import { GraduationCap, Menu, X, type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/Utils";
+import * as React from "react";
 
-export type DashboardNavItem = {
+type NavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
 };
 
+const studentNav: NavItem[] = [
+  { label: "Overview", href: "/dashboard/student", icon: LayoutGrid },
+  { label: "Find Tutors", href: "/dashboard/student/tutors", icon: Search },
+  { label: "My Bookings", href: "/dashboard/student/bookings", icon: CalendarClock },
+  { label: "Messages", href: "/dashboard/student/messages", icon: MessageSquare },
+  { label: "Settings", href: "/dashboard/student/settings", icon: Settings },
+];
+
+const tutorNav: NavItem[] = [
+  { label: "Overview", href: "/dashboard/tutor", icon: LayoutGrid },
+  { label: "My Students", href: "/dashboard/tutor/students", icon: Users },
+  { label: "Availability", href: "/dashboard/tutor/availability", icon: CalendarClock },
+  { label: "Earnings", href: "/dashboard/tutor/earnings", icon: Wallet },
+  { label: "Settings", href: "/dashboard/tutor/settings", icon: Settings },
+];
+
 export function DashboardShell({
-  navItems,
-  roleLabel,
+  role,
   children,
 }: {
-  navItems: DashboardNavItem[];
-  roleLabel: string;
+  role: "student" | "tutor";
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
+  const navItems = role === "student" ? studentNav : tutorNav;
+  const roleLabel = role === "student" ? "Student" : "Tutor";
 
   const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) =>
     navItems.map((item) => {
