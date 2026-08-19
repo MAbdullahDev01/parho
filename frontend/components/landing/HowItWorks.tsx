@@ -5,7 +5,7 @@ const steps = [
     icon: Search,
     title: "Search & filter",
     description:
-      "Filter tutors by level, board, subject, or target grade — O/A Level, Cambridge, or Federal Board.",
+      "Filter tutors by level, board, subject, or target grade — O/A Level, Cambridge.",
     accent: "indigo" as const,
   },
   {
@@ -64,7 +64,7 @@ export function HowItWorks() {
               {i < steps.length - 1 && (
                 <div
                   aria-hidden
-                  className="ledger-line absolute -right-3 top-1/2 hidden h-px w-6 -translate-y-1/2 sm:block"
+                  className="ledger-line absolute -right-8 top-1/2 hidden h-px w-8 -translate-y-1/2 md:block"
                 />
               )}
             </div>
