@@ -3,11 +3,11 @@ import { GraduationCap } from "lucide-react";
 const columns = [
   {
     title: "Product",
-    links: ["How it Works", "Find a Tutor", "Become a Tutor", "Pricing"],
+    links: ["How it Works", "Find a Tutor", "Become a Tutor"],
   },
   {
     title: "Company",
-    links: ["About", "Careers", "Blog", "Contact"],
+    links: ["About", "Contact"],
   },
   {
     title: "Trust",
