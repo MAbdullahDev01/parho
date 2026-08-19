@@ -24,3 +24,13 @@ def create_user_from_clerk_event(data: dict) -> dict:
     supabase = get_supabase()
     response = supabase.table("users").upsert(record, on_conflict="clerk_id").execute()
     return response.data
+
+def set_user_role(clerk_id: str, role: str) -> dict:
+    supabase = get_supabase()
+    response = (
+        supabase.table("users")
+        .update({"role": role})
+        .eq("clerk_id", clerk_id)
+        .execute()
+    )
+    return response.data
