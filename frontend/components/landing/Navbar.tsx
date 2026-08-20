@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/Utils";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { GraduationCap, Menu, X } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 const links = [
@@ -40,12 +40,12 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <SignInButton mode="redirect">
+          <Link href="/sign-in">
             <Button variant="outline" size="sm">Log In</Button>
-          </SignInButton>
-          <SignUpButton mode="redirect">
+          </Link>
+          <Link href="/sign-up">
             <Button variant="primary" size="sm">Get Started</Button>
-          </SignUpButton>
+          </Link>
         </div>
 
         <button
@@ -77,12 +77,12 @@ export function Navbar() {
             </a>
           ))}
           <div className="mt-2 flex flex-col gap-2 border-t border-line pt-4">
-            <SignInButton mode="redirect">
-              <Button variant="ghost" size="sm">Log In</Button>
-            </SignInButton>
-            <SignUpButton mode="redirect">
-              <Button variant="ghost" size="sm">Get Started</Button>
-            </SignUpButton>
+            <Link href="/sign-in" onClick={() => setOpen(false)}>
+              <Button variant="ghost" size="sm" className="w-full">Log In</Button>
+            </Link>
+            <Link href="/sign-up" onClick={() => setOpen(false)}>
+              <Button variant="ghost" size="sm" className="w-full">Get Started</Button>
+            </Link>
           </div>
         </nav>
       </div>
