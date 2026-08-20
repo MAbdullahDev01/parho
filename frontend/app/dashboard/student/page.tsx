@@ -1,4 +1,3 @@
-// frontend/app/dashboard/student/page.tsx
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import {
