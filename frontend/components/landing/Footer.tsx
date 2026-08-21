@@ -1,48 +1,44 @@
-import { GraduationCap } from "lucide-react";
-
 const columns = [
   {
     title: "Product",
-    links: ["How it Works", "Find a Tutor", "Become a Tutor"],
+    links: ["How it works", "Find a tutor", "Become a tutor", "Questions"],
   },
   {
     title: "Company",
-    links: ["About", "Contact"],
+    links: ["About", "Careers", "Contact"],
   },
   {
     title: "Trust",
-    links: ["Tutor Verification", "Escrow Protection", "Refund Policy", "Safety"],
+    links: ["Tutor verification", "Escrow protection", "Refund policy"],
   },
   {
     title: "Legal",
-    links: ["Terms of Service", "Privacy Policy"],
+    links: ["Terms of service", "Privacy policy"],
   },
 ];
 
 export function Footer() {
   return (
-    <footer className="border-t border-line bg-white">
+    <footer className="border-t border-line-dark bg-ink text-bone">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr]">
           <div>
             <a href="#" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
-                <GraduationCap className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
+              <span className="stamp-ring flex h-8 w-8 rotate-[-6deg] items-center justify-center text-stamp">
+                <span className="font-display text-xs font-semibold">P</span>
               </span>
-              <span className="font-display text-lg font-semibold tracking-tight text-ink">
-                Parho
-              </span>
+              <span className="font-display text-lg font-medium tracking-tight">Parho</span>
             </a>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-graphite">
               Verified 1-on-1 online tuitions for O/A Level students across
-              Pakistan — free demo first, escrow-protected always.
+              Pakistan - free demo first, escrow-protected always.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {columns.map((col) => (
               <div key={col.title}>
-                <p className="font-display text-sm font-semibold text-ink">
+                <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-graphite">
                   {col.title}
                 </p>
                 <ul className="mt-4 space-y-2.5">
@@ -50,7 +46,7 @@ export function Footer() {
                     <li key={link}>
                       <a
                         href="#"
-                        className="text-sm text-slate-500 transition-colors hover:text-ink"
+                        className="text-sm text-bone/80 transition-colors hover:text-bone"
                       >
                         {link}
                       </a>
@@ -62,11 +58,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-line pt-8 sm:flex-row">
-          <p className="text-xs text-slate-400">
+        <div className="tear-line mt-12 text-graphite" />
+        <div className="mt-6 flex flex-col items-center justify-between gap-4 font-mono text-[11px] text-graphite sm:flex-row">
+          <p>
             © {new Date().getFullYear()} Parho. All rights reserved.
           </p>
-          <p className="text-xs text-slate-400">Made for students across Pakistan 🇵🇰</p>
+          <p>Filed for students across Pakistan</p>
         </div>
       </div>
     </footer>

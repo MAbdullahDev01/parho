@@ -1,75 +1,74 @@
-import { Search, Video, ShieldCheck } from "lucide-react";
+"use client";
 
-const steps = [
+import { fadeUp, stagger, viewport } from "@/lib/motion";
+import { Search, ShieldCheck, Video } from "lucide-react";
+import { motion } from "motion/react";
+
+const clauses = [
   {
+    mark: "S1",
     icon: Search,
     title: "Search & filter",
     description:
-      "Filter tutors by level, board, subject, or target grade — O/A Level, Cambridge.",
-    accent: "indigo" as const,
+      "Filter by level, board, subject, or target grade - O/A Level, Cambridge, or Federal Board.",
   },
   {
+    mark: "S2",
     icon: Video,
-    title: "Book a free 15-min demo",
+    title: "Book a free demo",
     description:
-      "Test teaching style and compatibility with zero commitment. No card required for the demo.",
-    accent: "emerald" as const,
+      "15 minutes, no card required. Judge teaching style and fit before you commit to anything.",
   },
   {
+    mark: "S3",
     icon: ShieldCheck,
-    title: "Pay hourly, escrow-protected",
+    title: "Pay hourly, in escrow",
     description:
-      "Your payment is held safely and only released to the tutor once the session ends successfully.",
-    accent: "indigo" as const,
+      "Funds are held until the session ends successfully, then released - never before.",
   },
 ];
 
-const accentClasses = {
-  emerald: "bg-emerald-50 text-emerald-600",
-  indigo: "bg-indigo-50 text-indigo-600",
-};
-
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-mist py-20 sm:py-28">
+    <section id="how-it-works" className="bg-page py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
-          <p className="text-sm font-semibold text-emerald-600">How it works</p>
-          <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-            Three steps between you and a tutor you trust.
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={viewport}
+          variants={fadeUp}
+          className="max-w-2xl"
+        >
+          <p className="font-mono text-xs uppercase tracking-[0.14em] text-ledger">
+            How it works
+          </p>
+          <h2 className="mt-3 font-display text-3xl font-medium tracking-tight text-carbon sm:text-4xl">
+            Three clauses. Nothing hidden below the fold.
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-3">
-          {steps.map((step, i) => (
-            <div
-              key={step.title}
-              className="group relative rounded-2xl border border-line bg-white p-6 transition-shadow duration-200 hover:shadow-card"
-            >
-              <span className="font-display text-xs font-medium text-slate-300">
-                Step {i + 1}
-              </span>
-              <div
-                className={`mt-4 flex h-11 w-11 items-center justify-center rounded-xl ${accentClasses[step.accent]}`}
-              >
-                <step.icon className="h-5 w-5" strokeWidth={2.25} />
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={viewport}
+          variants={stagger(0.14)}
+          className="mt-14 grid gap-px overflow-hidden rounded-md border border-line-light bg-line-light sm:grid-cols-3"
+        >
+          {clauses.map((clause) => (
+            <motion.div key={clause.mark} variants={fadeUp} className="bg-card p-7">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs text-slate">{clause.mark}</span>
+                <clause.icon className="h-5 w-5 text-ledger" strokeWidth={1.75} />
               </div>
-              <h3 className="mt-5 font-display text-lg font-semibold text-ink">
-                {step.title}
+              <h3 className="mt-6 font-display text-xl font-medium text-carbon">
+                {clause.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                {step.description}
+              <p className="mt-2 text-sm leading-relaxed text-slate">
+                {clause.description}
               </p>
-
-              {i < steps.length - 1 && (
-                <div
-                  aria-hidden
-                  className="ledger-line absolute -right-8 top-1/2 hidden h-px w-8 -translate-y-1/2 md:block"
-                />
-              )}
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

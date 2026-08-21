@@ -1,8 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/Utils";
+import { Plus } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import * as React from "react";
 
 type AccordionItemData = {
   value: string;
@@ -11,13 +12,11 @@ type AccordionItemData = {
 };
 
 export function Accordion({ items }: { items: AccordionItemData[] }) {
-  const [openValue, setOpenValue] = React.useState<string | null>(
-    items[0]?.value ?? null
-  );
+  const [openValue, setOpenValue] = React.useState<string | null>(items[0]?.value ?? null);
 
   return (
-    <div className="divide-y divide-line rounded-2xl border border-line bg-white">
-      {items.map((item) => {
+    <div className="divide-y divide-line-light border-y border-line-light">
+      {items.map((item, i) => {
         const isOpen = openValue === item.value;
         return (
           <div key={item.value}>
@@ -25,30 +24,37 @@ export function Accordion({ items }: { items: AccordionItemData[] }) {
               type="button"
               onClick={() => setOpenValue(isOpen ? null : item.value)}
               aria-expanded={isOpen}
-              className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left sm:px-6"
+              className="flex w-full items-start justify-between gap-4 py-6 text-left"
             >
-              <span className="font-display text-[15px] font-medium text-ink sm:text-base">
-                {item.question}
+              <span className="flex gap-4">
+                <span className="font-mono text-xs text-ledger">Q{i + 1}</span>
+                <span className="font-display text-[16px] font-medium text-carbon">
+                  {item.question}
+                </span>
               </span>
-              <ChevronDown
+              <Plus
                 className={cn(
-                  "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200",
-                  isOpen && "rotate-180 text-emerald-600"
+                  "mt-0.5 h-4 w-4 shrink-0 text-slate transition-transform duration-300",
+                  isOpen && "rotate-45 text-stamp"
                 )}
               />
             </button>
-            <div
-              className={cn(
-                "grid transition-all duration-200 ease-in-out",
-                isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden"
+                >
+                  <p className="flex gap-4 pb-6 text-sm leading-relaxed text-slate">
+                    <span className="select-none font-mono text-xs text-transparent">Q{i + 1}</span>
+                    {item.answer}
+                  </p>
+                </motion.div>
               )}
-            >
-              <div className="overflow-hidden">
-                <p className="px-5 pb-5 text-sm leading-relaxed text-slate-600 sm:px-6">
-                  {item.answer}
-                </p>
-              </div>
-            </div>
+            </AnimatePresence>
           </div>
         );
       })}

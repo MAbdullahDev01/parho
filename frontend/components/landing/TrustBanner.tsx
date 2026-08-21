@@ -1,4 +1,8 @@
-import { FileCheck2, Lock, Video, BadgeCheck } from "lucide-react";
+"use client";
+
+import { fadeUp, stagger, viewport } from "@/lib/motion";
+import { BadgeCheck, FileCheck2, Lock, Video } from "lucide-react";
+import { motion } from "motion/react";
 
 const ledgerSteps = [
   { icon: Video, label: "Class booked", meta: "PKR 1,200 quoted" },
@@ -9,89 +13,93 @@ const ledgerSteps = [
 
 export function TrustBanner() {
   return (
-    <section className="bg-ink py-20 text-white sm:py-28">
+    <section className="bg-ink py-24 text-bone sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
-          <div>
-            <p className="text-sm font-semibold text-emerald-400">
-              The escrow &amp; verification advantage
-            </p>
-            <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+        <div className="grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-16">
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={viewport}
+            variants={stagger(0.1)}
+          >
+            <motion.p variants={fadeUp} className="font-mono text-xs uppercase tracking-[0.14em] text-ledger-light">
+              Ledger, not a promise
+            </motion.p>
+            <motion.h2 variants={fadeUp} className="mt-3 font-display text-3xl font-medium tracking-tight sm:text-4xl">
               Your money never sits with the tutor until class is done.
-            </h2>
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300 sm:text-base">
+            </motion.h2>
+            <motion.p variants={fadeUp} className="mt-4 max-w-md text-sm leading-relaxed text-graphite sm:text-base">
               Every academy promises quality. Parho backs it with two
-              structural guarantees instead of a sales pitch.
-            </p>
+              entries in the ledger instead of a sales pitch.
+            </motion.p>
 
-            <ul className="mt-8 space-y-5">
-              <li className="flex gap-3">
-                <FileCheck2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+            <motion.ul variants={stagger(0.1)} className="mt-9 space-y-5">
+              <motion.li variants={fadeUp} className="flex gap-3">
+                <FileCheck2 className="mt-0.5 h-5 w-5 shrink-0 text-ledger-light" />
                 <div>
-                  <p className="font-display text-sm font-semibold">
+                  <p className="font-display text-[15px] font-medium">
                     Automated transcript checks
                   </p>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Every tutor's academic record is verified before they can
-                    accept a single booking — you only ever learn from
-                    confirmed toppers.
+                  <p className="mt-1 text-sm text-graphite">
+                    A tutor's record is checked against the issuing board
+                    before their profile ever goes live.
                   </p>
                 </div>
-              </li>
-              <li className="flex gap-3">
-                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+              </motion.li>
+              <motion.li variants={fadeUp} className="flex gap-3">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-ledger-light" />
                 <div>
-                  <p className="font-display text-sm font-semibold">
-                    Escrow payment protection
+                  <p className="font-display text-[15px] font-medium">
+                    Escrow, entry by entry
                   </p>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Pay per hour, held safely until class ends. A no-show
-                    means a 100% refund, released automatically.
+                  <p className="mt-1 text-sm text-graphite">
+                    A no-show is logged as a 100% refund, released to your
+                    wallet automatically - no ticket, no wait.
                   </p>
                 </div>
-              </li>
-            </ul>
-          </div>
+              </motion.li>
+            </motion.ul>
+          </motion.div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              Live escrow ledger
-            </p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={viewport}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-md bg-ink-soft p-6 sm:p-8"
+          >
+            <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.1em] text-graphite">
+              <span>Escrow receipt</span>
+              <span>No. 004821</span>
+            </div>
+            <div className="tear-line mt-4 text-graphite" />
 
-            {/* Container for steps */}
-            <div className="relative mt-6 flex flex-col gap-8 sm:flex-row sm:justify-between">
-              
-              {/* Desktop Horizontal Animated Bar */}
+            <div className="relative mt-8 flex flex-col gap-8 sm:flex-row sm:justify-between">
               <div
                 aria-hidden
-                className="absolute left-[12.5%] top-5 hidden h-[2px] w-[75%] overflow-hidden bg-white/10 sm:block"
+                className="absolute left-5 top-5 hidden h-px w-[calc(100%-2.5rem)] overflow-hidden bg-white/10 sm:block"
               >
-                <div className="animate-beam h-full w-1/2 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399]" />
-              </div>
-
-              {/* Mobile Vertical Animated Bar */}
-              <div
-                aria-hidden
-                className="absolute left-5 top-5 block h-[calc(100%-2.5rem)] w-[2px] overflow-hidden bg-white/10 sm:hidden"
-              >
-                <div className="animate-beam-vertical h-1/2 w-full bg-gradient-to-b from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399]" />
+                <div className="h-full w-1/4 animate-thread bg-ledger-light" />
               </div>
 
               {ledgerSteps.map((step) => (
-                <div key={step.label} className="relative z-10 flex items-start gap-4 sm:flex-1 sm:flex-col sm:items-center sm:text-center">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-ink shadow-[0_0_15px_rgba(52,211,153,0.15)] ring-4 ring-ink">
-                    <step.icon className="h-4 w-4 text-emerald-400" />
+                <div key={step.label} className="relative flex-1 sm:text-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-ink sm:mx-auto">
+                    <step.icon className="h-4 w-4 text-ledger-light" />
                   </div>
-                  <div>
-                    <p className="font-display text-sm font-medium text-white">
-                      {step.label}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-400">{step.meta}</p>
-                  </div>
+                  <p className="mt-3 font-display text-sm font-medium text-bone">
+                    {step.label}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] text-graphite">{step.meta}</p>
                 </div>
               ))}
             </div>
-          </div>
+
+            <div className="tear-line mt-8 text-graphite" />
+            <p className="mt-4 text-center font-mono text-[11px] text-graphite">
+              Balance held: PKR 1,200 - auto-releases in 00:47:12
+            </p>
+          </motion.div>
         </div>
       </div>
     </section>

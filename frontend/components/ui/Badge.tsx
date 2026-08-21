@@ -1,16 +1,18 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/Utils";
+import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.08em]",
   {
     variants: {
       variant: {
-        emerald: "bg-emerald-50 text-emerald-700",
-        indigo: "bg-indigo-50 text-indigo-700",
-        neutral: "bg-mist text-slate-600",
-        onDark: "bg-white/10 text-white",
+        stamp: "bg-stamp-50 text-stamp-deep",
+        ledger: "bg-ledger-50 text-ledger",
+        neutral: "bg-black/[0.04] text-slate",
+        onDark: "bg-white/[0.06] text-bone",
+        emerald: "bg-ledger-50 text-ledger",
+        indigo: "bg-stamp-50 text-stamp-deep",
       },
     },
     defaultVariants: {
