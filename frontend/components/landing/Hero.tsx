@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { fadeUp, revealClip, stagger, stampIn, viewport } from "@/lib/motion";
 import { Clock3, Lock, ShieldCheck } from "lucide-react";
@@ -48,12 +49,16 @@ export function Hero() {
           </motion.p>
 
           <motion.div variants={fadeUp} className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" variant="stamp">
-              Find your tutor
-            </Button>
-            <Button size="lg" variant="outlineDark">
-              Apply to tutor
-            </Button>
+            <Link href="/sign-up">
+              <Button size="lg" variant="stamp">
+                Find your tutor
+              </Button>
+            </Link>
+            <Link href="/sign-up">
+              <Button size="lg" variant="outlineDark">
+                Apply to tutor
+              </Button>
+            </Link>
           </motion.div>
 
           <motion.dl variants={fadeUp} className="mt-11 flex flex-wrap gap-x-7 gap-y-3">

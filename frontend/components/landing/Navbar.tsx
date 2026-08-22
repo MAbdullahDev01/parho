@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/Utils";
 import { Menu, X } from "lucide-react";
@@ -46,12 +47,16 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button variant="ghost" size="sm" className="text-bone hover:bg-white/5">
-            Log in
-          </Button>
-          <Button variant="stamp" size="sm">
-            Get started
-          </Button>
+          <Link href="/sign-in">
+            <Button variant="ghost" size="sm" className="text-bone hover:bg-white/5">
+              Log in
+            </Button>
+          </Link>
+          <Link href="/sign-up">
+            <Button variant="stamp" size="sm">
+              Get started
+            </Button>
+          </Link>
         </div>
 
         <button
