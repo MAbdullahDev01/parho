@@ -1,4 +1,3 @@
-import type { Appearance } from "@clerk/types";
 import { buttonVariants } from "@/lib/button-variants";
 import { cn } from "@/lib/Utils";
 
@@ -8,16 +7,18 @@ import { cn } from "@/lib/Utils";
  *
  * The auth shell owns the outer card. Clerk is rendered as a flush, full-width
  * form inside it so there is only one visual card and no internal overflow.
+ *
+ * Intentionally leave this object unannotated: @clerk/nextjs owns the
+ * Appearance type for the installed SDK, while @clerk/types can lag behind
+ * the SDK's Appearance options in dependency resolution.
  */
-export const clerkAppearance: Appearance = {
-  layout: {
-    socialButtonsPlacement: "top",
-    socialButtonsVariant: "blockButton",
-    logoPlacement: "none",
-    showOptionalFields: true,
-  },
+export const clerkAppearance = {
   options: {
-    elevation: "flush",
+    socialButtonsPlacement: "top" as const,
+    socialButtonsVariant: "blockButton" as const,
+    logoPlacement: "none" as const,
+    showOptionalFields: true,
+    elevation: "flush" as const,
     unsafe_disableDevelopmentModeWarnings: true,
   },
   variables: {
