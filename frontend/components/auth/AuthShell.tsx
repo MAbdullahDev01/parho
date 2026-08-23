@@ -106,19 +106,19 @@ export function AuthShell({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto flex min-w-0 w-full max-w-sm flex-1 flex-col justify-center py-10 lg:py-0"
+          className="mx-auto flex min-w-0 w-full max-w-md flex-1 flex-col justify-center py-10 lg:py-0"
         >
           <div className="relative min-w-0 w-full rounded-md border border-line-light bg-card p-7 shadow-elevated sm:p-8">
             <motion.div
               initial="hidden"
               animate="show"
               variants={stampIn}
-              className="stamp-ring pointer-events-none absolute -right-15 -top-1 z-10 hidden h-14 w-14 flex-col items-center justify-center bg-card text-stamp shadow-stamp sm:flex"
+              className="stamp-ring pointer-events-none absolute -right-7 -top-4 z-10 hidden h-14 w-14 flex-col items-center justify-center bg-card text-stamp shadow-stamp sm:flex"
             >
               <ShieldCheck className="h-4 w-4" strokeWidth={2} />
             </motion.div>
 
-            <div className="min-w-0 w-full overflow-hidden">{children}</div>
+            <div className="min-w-0 w-full">{children}</div>
           </div>
         </motion.div>
 
