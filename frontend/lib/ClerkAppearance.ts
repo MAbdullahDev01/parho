@@ -1,10 +1,21 @@
 import type { Appearance } from "@clerk/types";
+import { buttonVariants } from "@/lib/button-variants";
+import { cn } from "@/lib/Utils";
 
 /**
  * Restyles Clerk's prebuilt <SignIn />/<SignUp /> widgets to match Parho's
- * design system instead of Clerk's default theme. Keep this in sync with
- * the tokens in app/globals.css (colors, radius, fonts) and the variants
- * in components/ui/Button.tsx.
+ * "verified document" design system.
+ *
+ * This is intentionally NOT a hand-copied palette:
+ *  - `variables` below reference the CSS custom properties defined in
+ *    app/globals.css (--color-stamp, --color-carbon, etc.) via var(...),
+ *    so editing a color there updates Clerk's widget automatically.
+ *  - Buttons reuse `buttonVariants` from components/ui/Button.tsx directly,
+ *    so if that component's styling changes, this file doesn't need to be
+ *    touched separately.
+ *
+ * Net result: globals.css + Button.tsx are the only two files that ever
+ * need editing to restyle sign-in/sign-up.
  */
 export const clerkAppearance: Appearance = {
   layout: {
@@ -14,15 +25,15 @@ export const clerkAppearance: Appearance = {
     showOptionalFields: true,
   },
   variables: {
-    colorPrimary: "#059669", // emerald-600
-    colorText: "#0b1120", // ink
-    colorTextSecondary: "#64748b", // slate-500
-    colorBackground: "#ffffff",
-    colorInputBackground: "#ffffff",
-    colorInputText: "#0b1120",
-    colorDanger: "#dc2626",
-    colorNeutral: "#0b1120",
-    borderRadius: "0.75rem",
+    colorPrimary: "var(--color-stamp)",
+    colorText: "var(--color-carbon)",
+    colorTextSecondary: "var(--color-slate)",
+    colorBackground: "var(--color-card)",
+    colorInputBackground: "var(--color-card)",
+    colorInputText: "var(--color-carbon)",
+    colorDanger: "var(--color-stamp-deep)",
+    colorNeutral: "var(--color-carbon)",
+    borderRadius: "0.5rem", // matches rounded-md used across ui/Button + ui/Card
     fontFamily: "var(--font-body), system-ui, sans-serif",
     fontFamilyButtons: "var(--font-body), system-ui, sans-serif",
     fontSize: "0.875rem",
@@ -33,53 +44,51 @@ export const clerkAppearance: Appearance = {
     card: "w-full bg-transparent p-0 shadow-none border-none gap-6",
 
     header: "gap-1.5",
-    headerTitle: "font-display text-2xl font-semibold tracking-tight text-ink",
-    headerSubtitle: "text-sm text-slate-500",
+    headerTitle: "font-display text-2xl font-medium tracking-tight text-carbon",
+    headerSubtitle: "text-sm text-slate",
 
-    socialButtonsBlockButton:
-      "h-11 rounded-full border border-line bg-white text-sm font-semibold text-ink transition-colors hover:bg-mist",
-    socialButtonsBlockButtonText: "text-sm font-semibold",
+    socialButtonsBlockButton: cn(buttonVariants({ variant: "outline" }), "w-full"),
+    socialButtonsBlockButtonText: "text-sm font-medium",
     socialButtonsProviderIcon: "h-4 w-4",
 
     dividerRow: "my-2",
-    dividerLine: "bg-line",
-    dividerText: "text-xs font-medium uppercase tracking-wide text-slate-400",
+    dividerLine: "bg-line-light",
+    dividerText: "font-mono text-[10px] uppercase tracking-[0.12em] text-slate",
 
     form: "gap-4",
     formFieldRow: "gap-1.5",
-    formFieldLabel: "text-sm font-medium text-ink",
+    formFieldLabel: "text-sm font-medium text-carbon",
     formFieldInput:
-      "h-11 rounded-xl border border-line bg-white px-3.5 text-sm text-ink placeholder:text-slate-400 transition-colors focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
-    formFieldInputShowPasswordButton: "text-slate-400 hover:text-ink",
-    formFieldHintText: "text-xs text-slate-400",
-    formFieldErrorText: "text-xs font-medium text-red-600",
-    formFieldSuccessText: "text-xs font-medium text-emerald-600",
-    formFieldAction: "text-xs font-semibold text-emerald-600 hover:text-emerald-700",
+      "h-11 rounded-md border border-line-light bg-card px-3.5 text-sm text-carbon placeholder:text-slate transition-colors focus:border-stamp focus:outline-none focus:ring-2 focus:ring-stamp/20",
+    formFieldInputShowPasswordButton: "text-slate hover:text-carbon",
+    formFieldHintText: "text-xs text-slate",
+    formFieldErrorText: "text-xs font-medium text-stamp-deep",
+    formFieldSuccessText: "text-xs font-medium text-ledger",
+    formFieldAction: "text-xs font-semibold text-stamp hover:text-stamp-deep",
 
-    formButtonPrimary:
-      "h-11 rounded-full bg-emerald-600 text-sm font-semibold normal-case text-white shadow-sm transition-colors hover:bg-emerald-700",
+    formButtonPrimary: cn(buttonVariants({ variant: "stamp" }), "w-full normal-case"),
 
     otpCodeFieldInput:
-      "rounded-xl border border-line text-ink focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20",
-    formResendCodeLink: "text-sm font-semibold text-emerald-600 hover:text-emerald-700",
+      "rounded-md border border-line-light text-carbon focus:border-stamp focus:ring-2 focus:ring-stamp/20",
+    formResendCodeLink: "text-sm font-semibold text-stamp hover:text-stamp-deep",
 
-    identityPreview: "rounded-xl border border-line bg-mist",
-    identityPreviewText: "text-sm text-ink",
-    identityPreviewEditButton: "text-emerald-600 hover:text-emerald-700",
+    identityPreview: "rounded-md border border-line-light bg-page",
+    identityPreviewText: "text-sm text-carbon",
+    identityPreviewEditButton: "text-stamp hover:text-stamp-deep",
 
     footer: "bg-transparent",
     footerAction: "text-sm",
-    footerActionText: "text-slate-500",
-    footerActionLink: "font-semibold text-emerald-600 hover:text-emerald-700",
+    footerActionText: "text-slate",
+    footerActionLink: "font-semibold text-stamp hover:text-stamp-deep",
 
-    alert: "rounded-xl border border-red-200 bg-red-50 text-red-700",
+    alert: "rounded-md border border-stamp-50 bg-stamp-50 text-stamp-deep",
     alertText: "text-sm",
 
-    formFieldRadioGroupItem: "accent-emerald-600",
-    checkboxInput: "accent-emerald-600",
-    checkboxLabel: "text-sm text-slate-600",
+    formFieldRadioGroupItem: "accent-stamp",
+    checkboxInput: "accent-stamp",
+    checkboxLabel: "text-sm text-slate",
 
-    badge: "bg-emerald-50 text-emerald-700",
+    badge: "bg-ledger-50 text-ledger",
     avatarBox: "rounded-full",
   },
 };

@@ -1,18 +1,22 @@
+import type { Metadata } from "next";
+import { SignUp } from "@clerk/nextjs";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { clerkAppearance } from "@/lib/ClerkAppearance";
-import { SignUp } from "@clerk/nextjs";
-import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign up — Parho",
+  title: "Create your account — Parho",
 };
 
 export default function SignUpPage() {
   return (
     <AuthShell
       eyebrow="Join Parho"
-      title="Learn from expert tutors whenever you need them."
-      subtitle="Sign up to find verified tutors, book free demos, and pay hourly with escrow protection."
+      title={
+        <>
+          Every tutor, <span className="italic">verified</span> on paper.
+        </>
+      }
+      subtitle="Create an account in under a minute — book a free 15-minute demo before a single rupee changes hands."
     >
       <SignUp
         routing="path"

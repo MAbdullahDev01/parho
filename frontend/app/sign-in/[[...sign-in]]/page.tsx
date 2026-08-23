@@ -11,7 +11,12 @@ export default function SignInPage() {
   return (
     <AuthShell
       eyebrow="Welcome back"
-      title="Pick up right where your last class left off."
+      title={
+        <>
+          Pick up right where your <span className="italic">last class</span>{" "}
+          left off.
+        </>
+      }
       subtitle="Log in to message your tutor, review upcoming demos, and track escrow-protected hours."
     >
       <SignIn

@@ -115,3 +115,32 @@
   border: 2.5px solid currentColor;
   border-radius: 9999px;
 }
+/* ---- Custom scrollbar ----
+   Uses the same tokens as the rest of the palette above (--color-graphite,
+   --color-stamp, --color-page) so re-theming the site re-themes the
+   scrollbar automatically — no separate maintenance needed.
+   Graphite is used as the resting color rather than ink or stamp because
+   it has enough contrast to read against both the light (page/card) and
+   dark (ink) sections the site alternates between. */
+html {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-graphite) 55%, transparent) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--color-graphite) 55%, transparent);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-stamp);
+}
