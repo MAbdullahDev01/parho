@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ShieldCheck, Lock, Clock3, Star } from "lucide-react";
 import { motion } from "motion/react";
-import { Card } from "@/components/ui/Card";
 import { fadeUp, stagger, revealClip, stampIn } from "@/lib/motion";
 
 const trustIndicators = [
@@ -25,7 +24,6 @@ export function AuthShell({
 }) {
   return (
     <main className="grid min-h-screen bg-page lg:grid-cols-[1.05fr_1fr]">
-      {/* Brand panel — hidden on small screens, mirrors Hero.tsx's visual language */}
       <div className="relative hidden overflow-hidden bg-ink px-10 py-12 text-bone lg:flex lg:flex-col lg:justify-between xl:px-16">
         <div
           aria-hidden
@@ -38,9 +36,7 @@ export function AuthShell({
               <span className="stamp-ring flex h-8 w-8 rotate-[-6deg] items-center justify-center text-stamp">
                 <span className="font-display text-xs font-semibold">P</span>
               </span>
-              <span className="font-display text-lg font-medium tracking-tight">
-                Parho
-              </span>
+              <span className="font-display text-lg font-medium tracking-tight">Parho</span>
             </Link>
           </motion.div>
 
@@ -61,10 +57,7 @@ export function AuthShell({
             </motion.h1>
           </div>
 
-          <motion.p
-            variants={fadeUp}
-            className="mt-4 max-w-sm text-sm leading-relaxed text-graphite sm:text-base"
-          >
+          <motion.p variants={fadeUp} className="mt-4 max-w-sm text-sm leading-relaxed text-graphite sm:text-base">
             {subtitle}
           </motion.p>
 
@@ -78,7 +71,6 @@ export function AuthShell({
           </motion.dl>
         </motion.div>
 
-        {/* "Sworn statement" card — same receipt/ledger motif as TrustBanner.tsx */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -96,57 +88,45 @@ export function AuthShell({
             ))}
           </div>
           <p className="mt-3 text-sm leading-relaxed text-bone/90">
-            &ldquo;Booked a free demo, liked the tutor, paid hourly. My refund
-            went through automatically the one time a class got
-            rescheduled.&rdquo;
+            &ldquo;Booked a free demo, liked the tutor, paid hourly. My refund went through automatically the one time a class got rescheduled.&rdquo;
           </p>
-          <p className="mt-3 text-xs font-medium text-graphite">
-            Sarah K. &middot; A-Level Parent, Lahore
-          </p>
+          <p className="mt-3 text-xs font-medium text-graphite">Sarah K. &middot; A-Level Parent, Lahore</p>
         </motion.div>
       </div>
 
-      {/* Form panel */}
-      <div className="flex flex-col justify-between bg-page px-4 py-8 sm:px-6 lg:px-12 lg:py-12 xl:px-20">
+      <div className="flex min-w-0 flex-col justify-between bg-page px-4 py-8 sm:px-6 lg:px-12 lg:py-12 xl:px-20">
         <Link href="/" className="flex items-center gap-2 lg:hidden">
           <span className="stamp-ring flex h-8 w-8 rotate-[-6deg] items-center justify-center text-stamp">
             <span className="font-display text-xs font-semibold">P</span>
           </span>
-          <span className="font-display text-lg font-medium tracking-tight text-carbon">
-            Parho
-          </span>
+          <span className="font-display text-lg font-medium tracking-tight text-carbon">Parho</span>
         </Link>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10 lg:py-0"
+          className="mx-auto flex min-w-0 w-full max-w-sm flex-1 flex-col justify-center py-10 lg:py-0"
         >
-          <Card className="paper-grain relative p-7 shadow-elevated sm:p-8">
-            {/* Floating verification stamp — same stampIn motif as Hero.tsx */}
+          <div className="relative min-w-0 w-full rounded-md border border-line-light bg-card p-7 shadow-elevated sm:p-8">
             <motion.div
               initial="hidden"
               animate="show"
               variants={stampIn}
-              className="stamp-ring pointer-events-none absolute -right-15 -top-1 hidden h-14 w-14 flex-col items-center justify-center bg-card text-stamp shadow-stamp sm:flex z-1"
+              className="stamp-ring pointer-events-none absolute -right-15 -top-1 z-10 hidden h-14 w-14 flex-col items-center justify-center bg-card text-stamp shadow-stamp sm:flex"
             >
               <ShieldCheck className="h-4 w-4" strokeWidth={2} />
             </motion.div>
 
-            {children}
-          </Card>
+            <div className="min-w-0 w-full overflow-hidden">{children}</div>
+          </div>
         </motion.div>
 
         <p className="text-center text-xs text-slate">
           &copy; {new Date().getFullYear()} Parho &middot;{" "}
-          <Link href="#" className="font-medium text-slate hover:text-carbon">
-            Terms
-          </Link>{" "}
+          <Link href="#" className="font-medium text-slate hover:text-carbon">Terms</Link>{" "}
           &middot;{" "}
-          <Link href="#" className="font-medium text-slate hover:text-carbon">
-            Privacy
-          </Link>
+          <Link href="#" className="font-medium text-slate hover:text-carbon">Privacy</Link>
         </p>
       </div>
     </main>
