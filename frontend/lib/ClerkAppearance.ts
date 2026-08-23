@@ -7,10 +7,6 @@ import { cn } from "@/lib/Utils";
  *
  * The auth shell owns the outer card. Clerk is rendered as a flush, full-width
  * form inside it so there is only one visual card and no internal overflow.
- *
- * Intentionally leave this object unannotated: @clerk/nextjs owns the
- * Appearance type for the installed SDK, while @clerk/types can lag behind
- * the SDK's Appearance options in dependency resolution.
  */
 export const clerkAppearance = {
   options: {
@@ -36,9 +32,11 @@ export const clerkAppearance = {
     fontSize: "0.875rem",
   },
   elements: {
-    rootBox: "w-full min-w-0",
-    cardBox: "w-full min-w-0 shadow-none",
-    card: "w-full min-w-0 bg-transparent p-0 shadow-none border-none gap-6",
+    // Explicitly reset Clerk's own sizing/margins. Without these, its internal
+    // max-width can make the form appear shifted toward the right edge.
+    rootBox: "!mx-0 !w-full !max-w-none min-w-0",
+    cardBox: "!mx-0 !w-full !max-w-none min-w-0 shadow-none",
+    card: "!mx-0 !w-full !max-w-none min-w-0 bg-transparent p-0 shadow-none border-none gap-6",
 
     header: "gap-1.5",
     headerTitle: "font-display text-2xl font-medium tracking-tight text-carbon",
@@ -46,7 +44,7 @@ export const clerkAppearance = {
 
     socialButtonsBlockButton: cn(
       buttonVariants({ variant: "outline" }),
-      "w-full min-w-0"
+      "!mx-0 !w-full !max-w-none min-w-0"
     ),
     socialButtonsBlockButtonText: "text-sm font-medium",
     socialButtonsProviderIcon: "h-4 w-4",
@@ -55,11 +53,11 @@ export const clerkAppearance = {
     dividerLine: "bg-line-light",
     dividerText: "font-mono text-[10px] uppercase tracking-[0.12em] text-slate",
 
-    form: "w-full min-w-0 gap-4",
+    form: "!mx-0 !w-full !max-w-none min-w-0 gap-4",
     formFieldRow: "gap-1.5 min-w-0",
     formFieldLabel: "text-sm font-medium text-carbon",
     formFieldInput:
-      "h-11 w-full min-w-0 rounded-md border border-line-light bg-card px-3.5 text-sm text-carbon placeholder:text-slate transition-colors focus:border-stamp focus:outline-none focus:ring-2 focus:ring-stamp/20",
+      "h-11 !w-full !max-w-none min-w-0 rounded-md border border-line-light bg-card px-3.5 text-sm text-carbon placeholder:text-slate transition-colors focus:border-stamp focus:outline-none focus:ring-2 focus:ring-stamp/20",
     formFieldInputShowPasswordButton: "text-slate hover:text-carbon",
     formFieldHintText: "text-xs text-slate",
     formFieldErrorText: "text-xs font-medium text-stamp-deep",
@@ -68,7 +66,7 @@ export const clerkAppearance = {
 
     formButtonPrimary: cn(
       buttonVariants({ variant: "stamp" }),
-      "w-full min-w-0 normal-case"
+      "!mx-0 !w-full !max-w-none min-w-0 normal-case"
     ),
 
     otpCodeFieldInput:
