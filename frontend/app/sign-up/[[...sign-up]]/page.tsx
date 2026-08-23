@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SignUp } from "@clerk/nextjs";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { clerkAppearance } from "@/lib/ClerkAppearance";
@@ -24,6 +25,15 @@ export default function SignUpPage() {
         signInUrl="/sign-in"
         appearance={clerkAppearance}
       />
+      <p className="mt-5 text-center text-sm text-slate">
+        Already have an account?{" "}
+        <Link
+          href="/sign-in"
+          className="font-semibold text-stamp transition-colors hover:text-stamp-deep"
+        >
+          Sign in
+        </Link>
+      </p>
     </AuthShell>
   );
 }
