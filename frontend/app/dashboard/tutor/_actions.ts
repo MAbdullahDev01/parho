@@ -15,6 +15,16 @@ export type TutorDashboardProfile = {
   }>;
   verification_status: "unverified" | "pending" | "verified" | "rejected";
   verification_notes: string | null;
+  auto_verification_status: "not_run" | "running" | "passed" | "flagged" | "error";
+  auto_verification_score: number | null;
+  auto_verification_flags: Array<{
+    filename?: string;
+    code?: string;
+    severity?: "low" | "medium" | "high";
+    evidence?: string;
+  }>;
+  auto_verification_summary: string | null;
+  auto_verified_at: string | null;
 };
 
 type BackendError = {
