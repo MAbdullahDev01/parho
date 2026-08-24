@@ -7,7 +7,6 @@ from app.schemas.admin import (
     AdminTranscriptUrl,
     AdminVerificationDecisionResponse,
 )
-from app.schemas.tutor import TranscriptRecord
 
 
 def _profile_query():
@@ -24,11 +23,14 @@ def _profile_query():
     )
 
 
+def _merge_profile_user(profile: dict, user: dict | None) -> AdminTutorQueueItem:
+    return AdminTutorQueueItem(**{**profile, **(user or {})})
+
+
 def list_tutor_verification_queue() -> list[AdminTutorQueueItem]:
     try:
         profiles_response = _profile_query().in_("verification_status", ["pending", "rejected"]).execute()
         profiles = profiles_response.data or []
-
         if not profiles:
             return []
 
@@ -41,14 +43,7 @@ def list_tutor_verification_queue() -> list[AdminTutorQueueItem]:
             .execute()
         )
         users = {row["clerk_id"]: row for row in (users_response.data or [])}
-
-        return [
-            AdminTutorQueueItem(
-                **profile,
-                **users.get(profile["clerk_id"], {}),
-            )
-            for profile in profiles
-        ]
+        return [_merge_profile_user(profile, users.get(profile["clerk_id"])) for profile in profiles]
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -71,7 +66,6 @@ def get_tutor_for_verification(clerk_id: str) -> AdminTutorQueueItem:
             .maybe_single()
             .execute()
         )
-
         if not profile_response.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tutor profile not found")
 
@@ -83,11 +77,7 @@ def get_tutor_for_verification(clerk_id: str) -> AdminTutorQueueItem:
             .maybe_single()
             .execute()
         )
-
-        return AdminTutorQueueItem(
-            **profile_response.data,
-            **(user_response.data or {}),
-        )
+        return _merge_profile_user(profile_response.data, user_response.data)
     except HTTPException:
         raise
     except Exception as exc:
@@ -127,7 +117,6 @@ def decide_tutor_verification(
             .eq("clerk_id", clerk_id)
             .execute()
         )
-
         if not response.data:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Verification decision was not saved")
 
@@ -149,7 +138,6 @@ def decide_tutor_verification(
 def get_transcript_urls(clerk_id: str) -> list[AdminTranscriptUrl]:
     tutor = get_tutor_for_verification(clerk_id)
     results: list[AdminTranscriptUrl] = []
-
     try:
         supabase = get_supabase()
         for transcript in tutor.transcripts:
