@@ -12,36 +12,24 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { getTutorDashboardProfile } from "./_actions";
 
-// TODO: replace with real data from Supabase once bookings/earnings tables exist.
+// TODO: replace with real data once bookings/earnings tables exist.
 const stats = [
-  { label: "This week's earnings", value: "PKR 8,400", icon: Wallet, accent: "emerald" as const },
-  { label: "Active students", value: "5", icon: Users, accent: "indigo" as const },
-  { label: "Sessions this week", value: "7", icon: Video, accent: "emerald" as const },
-  { label: "Avg. rating", value: "4.9", icon: Star, accent: "indigo" as const },
+  { label: "This week's earnings", value: "PKR 0", icon: Wallet, accent: "emerald" as const },
+  { label: "Active students", value: "0", icon: Users, accent: "indigo" as const },
+  { label: "Sessions this week", value: "0", icon: Video, accent: "emerald" as const },
+  { label: "Avg. rating", value: "—", icon: Star, accent: "indigo" as const },
 ];
 
-const upcomingSessions = [
-  {
-    id: "s1",
-    student: "Bilal Ahmed",
-    initials: "BA",
-    subject: "A-Level Physics",
-    type: "Free demo",
-    time: "Today · 6:00 PM",
-  },
-  {
-    id: "s2",
-    student: "Hira Sheikh",
-    initials: "HS",
-    subject: "A-Level Physics",
-    type: "Paid session",
-    time: "Tomorrow · 3:00 PM",
-  },
-];
-
-// TODO: replace with real verification status from Supabase `users`/`tutor_profiles`.
-const verificationStatus: "unverified" | "pending" | "verified" = "pending";
+const upcomingSessions: Array<{
+  id: string;
+  student: string;
+  initials: string;
+  subject: string;
+  type: string;
+  time: string;
+}> = [];
 
 const accentClasses = {
   emerald: "bg-emerald-50 text-emerald-600",
@@ -50,7 +38,12 @@ const accentClasses = {
 
 export default async function TutorOverviewPage() {
   const user = await currentUser();
+  const profileResult = await getTutorDashboardProfile();
+  const profile = profileResult.success ? profileResult.data : null;
   const firstName = user?.firstName ?? "there";
+
+  const verificationStatus = profile?.verification_status ?? "unverified";
+  const isVerified = verificationStatus === "verified";
 
   return (
     <div>
@@ -61,8 +54,8 @@ export default async function TutorOverviewPage() {
         Track your students, availability, and earnings.
       </p>
 
-      {/* Verification banner — only shows if not yet verified */}
-      {verificationStatus !== "verified" && (
+      {/* Verification banner */}
+      {!isVerified && (
         <Card className="mt-6 flex items-center gap-4 border-amber-200 bg-amber-50 p-4">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100">
             <AlertCircle className="h-4 w-4 text-amber-600" strokeWidth={2.25} />
@@ -71,20 +64,53 @@ export default async function TutorOverviewPage() {
             <p className="text-sm font-semibold text-ink">
               {verificationStatus === "pending"
                 ? "Transcript under review"
-                : "Complete your tutor setup"}
+                : verificationStatus === "rejected"
+                  ? "Verification needs attention"
+                  : "Complete your tutor setup"}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
               {verificationStatus === "pending"
-                ? "We're verifying your submitted transcript. This usually takes 1–2 business days."
-                : "Submit your transcript and choose subjects to start accepting bookings."}
+                ? "We're verifying your submitted transcript."
+                : verificationStatus === "rejected"
+                  ? profile?.verification_notes ?? "Please review your setup and resubmit."
+                  : "Submit your transcript and choose subjects to start accepting bookings."}
             </p>
           </div>
           {verificationStatus !== "pending" && (
             <Link href="/onboarding/tutor-setup">
-              <Button size="sm">Finish setup</Button>
+              <Button size="sm">
+                {verificationStatus === "rejected" ? "Review setup" : "Finish setup"}
+              </Button>
             </Link>
           )}
         </Card>
+      )}
+
+      {profileResult.success && profile && (
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <Card className="p-4">
+            <p className="text-xs text-slate-500">Subjects</p>
+            <p className="mt-1 text-sm font-semibold text-ink">
+              {profile.subjects.join(", ")}
+            </p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs text-slate-500">Teaching level</p>
+            <p className="mt-1 text-sm font-semibold text-ink">
+              {profile.teaching_level === "both"
+                ? "O-Level + A-Level"
+                : profile.teaching_level === "o_level"
+                  ? "O-Level"
+                  : "A-Level"}
+            </p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-xs text-slate-500">Transcripts submitted</p>
+            <p className="mt-1 text-sm font-semibold text-ink">
+              {profile.transcripts.length}
+            </p>
+          </Card>
+        </div>
       )}
 
       {/* Stats */}
@@ -169,12 +195,12 @@ export default async function TutorOverviewPage() {
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
             </div>
             <p className="mt-2 font-display text-2xl font-semibold text-ink">
-              PKR 6,100
+              PKR 0
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Held in escrow until sessions are confirmed complete.
+              Earnings will appear here once you complete paid sessions.
             </p>
-            <Button size="sm" className="mt-4 w-full">
+            <Button size="sm" className="mt-4 w-full" disabled>
               Withdraw to JazzCash / EasyPaisa
             </Button>
           </Card>
@@ -182,16 +208,18 @@ export default async function TutorOverviewPage() {
           <Card className="mt-4 p-5">
             <p className="text-xs text-slate-500">Verification status</p>
             <div className="mt-2 flex items-center gap-2">
-              <Badge variant={verificationStatus === "verified" ? "emerald" : "neutral"}>
-                {verificationStatus === "verified"
+              <Badge variant={isVerified ? "emerald" : "neutral"}>
+                {isVerified
                   ? "Verified"
                   : verificationStatus === "pending"
-                  ? "Pending review"
-                  : "Not started"}
+                    ? "Pending review"
+                    : verificationStatus === "rejected"
+                      ? "Needs attention"
+                      : "Not started"}
               </Badge>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              {verificationStatus === "verified"
+              {isVerified
                 ? "Your transcript has been confirmed. You're visible to students."
                 : "Complete transcript submission to start receiving bookings."}
             </p>
