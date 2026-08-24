@@ -6,6 +6,7 @@ from typing import Any
 from openai import OpenAI
 
 from app.core.config import settings
+from app.core.constants import TRANSCRIPT_BUCKET
 from app.db.supabase import get_supabase
 
 
@@ -156,7 +157,7 @@ def run_auto_verification(
             if not path:
                 continue
 
-            file_bytes = supabase.storage.from_(settings.TRANSCRIPT_BUCKET).download(path)
+            file_bytes = supabase.storage.from_(TRANSCRIPT_BUCKET).download(path)
             result = _screen_document(
                 file_bytes=file_bytes,
                 filename=filename,
