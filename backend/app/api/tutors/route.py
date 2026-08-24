@@ -1,5 +1,6 @@
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile, status
 
+from app.core.config import settings
 from app.core.constants import SUBJECT_TAXONOMY
 from app.schemas.tutor import (
     TranscriptType,
@@ -8,6 +9,7 @@ from app.schemas.tutor import (
     TutorProfileSubmission,
 )
 from app.services.storage_service import upload_transcript
+from app.services.transcript_verification_service import run_auto_verification
 from app.services.tutor_service import get_tutor_profile, submit_tutor_profile
 
 router = APIRouter(prefix="/api/backend/tutors", tags=["tutors"])
@@ -41,8 +43,22 @@ async def upload_transcript_file(
 
 
 @router.post("/profile", response_model=TutorProfileResponse, status_code=status.HTTP_200_OK)
-def submit_profile(payload: TutorProfileSubmission):
-    return submit_tutor_profile(payload)
+def submit_profile(payload: TutorProfileSubmission, background_tasks: BackgroundTasks):
+    profile = submit_tutor_profile(payload)
+
+    # Screening runs after the profile response is ready so onboarding does
+    # not block on model latency. It never changes verification_status; only
+    # an admin can approve or reject the tutor.
+    if settings.AUTO_VERIFICATION_ENABLED:
+        background_tasks.add_task(
+            run_auto_verification,
+            clerk_id=payload.clerk_id,
+            transcripts=[t.model_dump(mode="json") for t in payload.transcripts],
+            claimed_level=payload.cambridge_transcript_level,
+            teaching_level=payload.teaching_level,
+        )
+
+    return profile
 
 
 @router.get("/profile/{clerk_id}", response_model=TutorProfileResponse)
