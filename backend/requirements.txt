@@ -5,3 +5,4 @@ svix
 supabase
 python-dotenv
 python-multipart
+openai>=1.0,<3
