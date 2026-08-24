@@ -44,6 +44,12 @@ function getBackendUrl(path: string) {
   return `${baseUrl.replace(/\/$/, "")}${path}`;
 }
 
+function getBackendHeaders() {
+  const secret = process.env.BACKEND_INTERNAL_SECRET;
+  if (!secret) throw new Error("BACKEND_INTERNAL_SECRET is not configured.");
+  return { "X-Internal-Secret": secret };
+}
+
 async function requireAdmin() {
   const { userId, sessionClaims } = await auth();
   if (!userId) throw new Error("You must be signed in.");
@@ -62,6 +68,7 @@ async function parseError(response: Response) {
 export async function getVerificationQueue() {
   await requireAdmin();
   const response = await fetch(getBackendUrl("/api/backend/admin/tutors/verification"), {
+    headers: getBackendHeaders(),
     cache: "no-store",
   });
   if (!response.ok) throw new Error(await parseError(response));
@@ -72,7 +79,7 @@ export async function getTutorVerification(clerkId: string) {
   await requireAdmin();
   const response = await fetch(
     getBackendUrl(`/api/backend/admin/tutors/${encodeURIComponent(clerkId)}/verification`),
-    { cache: "no-store" },
+    { headers: getBackendHeaders(), cache: "no-store" },
   );
   if (!response.ok) throw new Error(await parseError(response));
   return (await response.json()) as AdminTutor;
@@ -82,7 +89,7 @@ export async function getTutorTranscripts(clerkId: string) {
   await requireAdmin();
   const response = await fetch(
     getBackendUrl(`/api/backend/admin/tutors/${encodeURIComponent(clerkId)}/transcripts`),
-    { cache: "no-store" },
+    { headers: getBackendHeaders(), cache: "no-store" },
   );
   if (!response.ok) throw new Error(await parseError(response));
   return (await response.json()) as AdminTranscript[];
@@ -98,7 +105,7 @@ export async function decideTutorVerification(
     getBackendUrl(`/api/backend/admin/tutors/${encodeURIComponent(clerkId)}/verification`),
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getBackendHeaders() },
       body: JSON.stringify({ decision, notes: notes.trim() || null }),
     },
   );
