@@ -43,7 +43,19 @@ export default async function TutorOverviewPage() {
   const firstName = user?.firstName ?? "there";
 
   const verificationStatus = profile?.verification_status ?? "unverified";
+  const autoVerificationStatus = profile?.auto_verification_status ?? "not_run";
   const isVerified = verificationStatus === "verified";
+
+  const autoVerificationMessage =
+    autoVerificationStatus === "flagged"
+      ? "Automated screening found items that need additional human review."
+      : autoVerificationStatus === "passed"
+        ? "Automated screening completed. An admin still makes the final verification decision."
+        : autoVerificationStatus === "running"
+          ? "Your transcript is currently being screened before admin review."
+          : autoVerificationStatus === "error"
+            ? "Automated screening could not be completed. Your admin review can continue normally."
+            : "Automated screening will run after your transcript is submitted.";
 
   return (
     <div>
@@ -87,30 +99,64 @@ export default async function TutorOverviewPage() {
       )}
 
       {profileResult.success && profile && (
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <Card className="p-4">
-            <p className="text-xs text-slate-500">Subjects</p>
-            <p className="mt-1 text-sm font-semibold text-ink">
-              {profile.subjects.join(", ")}
-            </p>
+        <>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <Card className="p-4">
+              <p className="text-xs text-slate-500">Subjects</p>
+              <p className="mt-1 text-sm font-semibold text-ink">
+                {profile.subjects.join(", ")}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-xs text-slate-500">Teaching level</p>
+              <p className="mt-1 text-sm font-semibold text-ink">
+                {profile.teaching_level === "both"
+                  ? "O-Level + A-Level"
+                  : profile.teaching_level === "o_level"
+                    ? "O-Level"
+                    : "A-Level"}
+              </p>
+            </Card>
+            <Card className="p-4">
+              <p className="text-xs text-slate-500">Transcripts submitted</p>
+              <p className="mt-1 text-sm font-semibold text-ink">
+                {profile.transcripts.length}
+              </p>
+            </Card>
+          </div>
+
+          <Card className="mt-4 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Automated transcript screening
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  {autoVerificationMessage}
+                </p>
+              </div>
+              <Badge
+                variant={
+                  autoVerificationStatus === "flagged"
+                    ? "neutral"
+                    : autoVerificationStatus === "passed"
+                      ? "emerald"
+                      : "neutral"
+                }
+              >
+                {autoVerificationStatus === "passed"
+                  ? "Screened"
+                  : autoVerificationStatus === "flagged"
+                    ? "Additional review"
+                    : autoVerificationStatus === "running"
+                      ? "Screening"
+                      : autoVerificationStatus === "error"
+                        ? "Unavailable"
+                        : "Queued"}
+              </Badge>
+            </div>
           </Card>
-          <Card className="p-4">
-            <p className="text-xs text-slate-500">Teaching level</p>
-            <p className="mt-1 text-sm font-semibold text-ink">
-              {profile.teaching_level === "both"
-                ? "O-Level + A-Level"
-                : profile.teaching_level === "o_level"
-                  ? "O-Level"
-                  : "A-Level"}
-            </p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-xs text-slate-500">Transcripts submitted</p>
-            <p className="mt-1 text-sm font-semibold text-ink">
-              {profile.transcripts.length}
-            </p>
-          </Card>
-        </div>
+        </>
       )}
 
       {/* Stats */}
