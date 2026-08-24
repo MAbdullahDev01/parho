@@ -8,6 +8,13 @@ from app.core.constants import MAX_SUBJECTS, SUBJECT_TAXONOMY, allowed_teaching_
 TranscriptType = Literal["cambridge", "additional"]
 TeachingLevel = Literal["o_level", "a_level", "both"]
 CambridgeLevel = Literal["o_level", "a_level"]
+AutoVerificationStatus = Literal[
+    "not_run",
+    "running",
+    "passed",
+    "flagged",
+    "error",
+]
 
 
 class TranscriptRecord(BaseModel):
@@ -62,3 +69,8 @@ class TutorProfileResponse(BaseModel):
     transcripts: list[TranscriptRecord]
     verification_status: Literal["unverified", "pending", "verified", "rejected"]
     verification_notes: str | None = None
+    auto_verification_status: AutoVerificationStatus = "not_run"
+    auto_verification_score: float | None = None
+    auto_verification_flags: list[dict] = Field(default_factory=list)
+    auto_verification_summary: str | None = None
+    auto_verified_at: datetime | None = None
