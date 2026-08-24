@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     CLERK_WEBHOOK_SIGNING_SECRET: str
     SUPABASE_URL: str
     SUPABASE_SERVICE_ROLE_KEY: str
-    INTERNAL_API_SECRET: str
+    INTERNAL_API_SECRET: str | None = None
 
     # Advisory transcript screening. Keep disabled until the OpenAI API key is configured.
     OPENAI_API_KEY: str | None = None
