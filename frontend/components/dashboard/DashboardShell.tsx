@@ -10,6 +10,7 @@ import {
   MessageSquare,
   Search,
   Settings,
+  ShieldCheck,
   Users,
   Wallet,
   X,
@@ -41,17 +42,22 @@ const tutorNav: NavItem[] = [
   { label: "Settings", href: "/dashboard/tutor/settings", icon: Settings },
 ];
 
+const adminNav: NavItem[] = [
+  { label: "Verification", href: "/dashboard/admin", icon: ShieldCheck },
+  { label: "Settings", href: "/dashboard/admin/settings", icon: Settings },
+];
+
 export function DashboardShell({
   role,
   children,
 }: {
-  role: "student" | "tutor";
+  role: "student" | "tutor" | "admin";
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
-  const navItems = role === "student" ? studentNav : tutorNav;
-  const roleLabel = role === "student" ? "Student" : "Tutor";
+  const navItems = role === "student" ? studentNav : role === "tutor" ? tutorNav : adminNav;
+  const roleLabel = role === "student" ? "Student" : role === "tutor" ? "Tutor" : "Admin";
 
   const renderNavLinks = (onNavigate?: () => void) =>
     navItems.map((item) => {
@@ -74,7 +80,6 @@ export function DashboardShell({
 
   return (
     <div className="min-h-screen bg-mist">
-      {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-line bg-white lg:flex">
         <div className="flex h-16 items-center gap-2 border-b border-line px-6">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
@@ -83,9 +88,7 @@ export function DashboardShell({
           <span className="font-display text-lg font-semibold tracking-tight text-ink">Parho</span>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3 py-6">
-          {renderNavLinks()}
-        </nav>
+        <nav className="flex-1 space-y-1 px-3 py-6">{renderNavLinks()}</nav>
 
         <div className="flex items-center gap-3 border-t border-line p-4">
           <UserButton />
@@ -93,7 +96,6 @@ export function DashboardShell({
         </div>
       </aside>
 
-      {/* Mobile topbar */}
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-line bg-white px-4 lg:hidden">
         <span className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
