@@ -20,8 +20,17 @@ router = APIRouter(prefix="/api/backend/admin", tags=["admin"])
 
 
 def require_internal_secret(x_internal_secret: str | None) -> None:
-    if not settings.INTERNAL_API_SECRET or not x_internal_secret or not hmac.compare_digest(
-        x_internal_secret, settings.INTERNAL_API_SECRET
+    expected = settings.INTERNAL_API_SECRET
+    if not expected or not x_internal_secret:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin API access is not available.",
+        )
+
+    # Compare encoded bytes so secrets containing non-ASCII characters do not
+    # cause hmac.compare_digest(str, str) to raise TypeError.
+    if not hmac.compare_digest(
+        x_internal_secret.encode("utf-8"), expected.encode("utf-8")
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
