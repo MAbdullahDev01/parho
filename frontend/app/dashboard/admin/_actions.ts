@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
 
 export type AdminTutor = {
@@ -102,9 +103,11 @@ export async function decideTutorVerification(
     },
   );
   if (!response.ok) throw new Error(await parseError(response));
-  return (await response.json()) as {
+  const result = (await response.json()) as {
     clerk_id: string;
     verification_status: "verified" | "rejected";
     verification_notes: string | null;
   };
+  revalidatePath("/dashboard/admin");
+  return result;
 }
