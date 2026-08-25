@@ -27,35 +27,28 @@ export type TutorDashboardProfile = {
   auto_verified_at: string | null;
 };
 
-type BackendError = {
-  detail?: string | unknown;
-};
-
+type BackendError = { detail?: string | unknown };
 export type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
 function getBackendUrl(path: string) {
   const baseUrl = process.env.BACKEND_INTERNAL_URL;
-
-  if (!baseUrl) {
-    throw new Error("BACKEND_INTERNAL_URL is not configured.");
-  }
-
+  if (!baseUrl) throw new Error("BACKEND_INTERNAL_URL is not configured.");
   return `${baseUrl.replace(/\/$/, "")}${path}`;
+}
+
+function getBackendHeaders(tutorId: string) {
+  const secret = process.env.BACKEND_INTERNAL_SECRET;
+  if (!secret) throw new Error("BACKEND_INTERNAL_SECRET is not configured.");
+  return { "X-Internal-Secret": secret, "X-Tutor-Id": tutorId };
 }
 
 async function parseBackendError(response: Response): Promise<string> {
   try {
     const body = (await response.json()) as BackendError;
-
-    if (typeof body.detail === "string") {
-      return body.detail;
-    }
-  } catch {
-    // Fall through to status text.
-  }
-
+    if (typeof body.detail === "string") return body.detail;
+  } catch {}
   return response.statusText || `Request failed with status ${response.status}`;
 }
 
@@ -64,41 +57,26 @@ export async function getTutorDashboardProfile(): Promise<
 > {
   const { userId } = await auth();
 
-  if (!userId) {
-    return { success: false, error: "You must be signed in." };
-  }
+  if (!userId) return { success: false, error: "You must be signed in." };
 
   try {
     const response = await fetch(
       getBackendUrl(`/api/backend/tutors/profile/${encodeURIComponent(userId)}`),
       {
         method: "GET",
+        headers: getBackendHeaders(userId),
         cache: "no-store",
       },
     );
 
-    if (response.status === 404) {
-      return { success: true, data: null };
-    }
+    if (response.status === 404) return { success: true, data: null };
+    if (!response.ok) return { success: false, error: await parseBackendError(response) };
 
-    if (!response.ok) {
-      return {
-        success: false,
-        error: await parseBackendError(response),
-      };
-    }
-
-    return {
-      success: true,
-      data: (await response.json()) as TutorDashboardProfile,
-    };
+    return { success: true, data: (await response.json()) as TutorDashboardProfile };
   } catch (error) {
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unable to load your tutor profile.",
+      error: error instanceof Error ? error.message : "Unable to load your tutor profile.",
     };
   }
 }

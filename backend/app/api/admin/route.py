@@ -1,8 +1,6 @@
-import hmac
-
 from fastapi import APIRouter, Header, HTTPException, status
 
-from app.core.config import settings
+from app.api.dependencies import require_internal_secret
 from app.schemas.admin import (
     AdminTutorQueueItem,
     AdminTranscriptUrl,
@@ -17,25 +15,6 @@ from app.services.admin_service import (
 )
 
 router = APIRouter(prefix="/api/backend/admin", tags=["admin"])
-
-
-def require_internal_secret(x_internal_secret: str | None) -> None:
-    expected = settings.INTERNAL_API_SECRET
-    if not expected or not x_internal_secret:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin API access is not available.",
-        )
-
-    # Compare encoded bytes so secrets containing non-ASCII characters do not
-    # cause hmac.compare_digest(str, str) to raise TypeError.
-    if not hmac.compare_digest(
-        x_internal_secret.encode("utf-8"), expected.encode("utf-8")
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin API access is not available.",
-        )
 
 
 @router.get("/tutors/verification", response_model=list[AdminTutorQueueItem])
@@ -64,6 +43,12 @@ def tutor_verification_decision(
     clerk_id: str,
     payload: AdminVerificationDecisionRequest,
     x_internal_secret: str | None = Header(default=None),
+    x_admin_id: str | None = Header(default=None),
 ):
     require_internal_secret(x_internal_secret)
-    return decide_tutor_verification(clerk_id, payload.decision, payload.notes)
+    if not x_admin_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Admin identity is required for verification decisions.",
+        )
+    return decide_tutor_verification(clerk_id, payload.decision, payload.notes, x_admin_id)
