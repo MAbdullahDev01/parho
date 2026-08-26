@@ -15,13 +15,12 @@ def _profile_query():
         .table("tutor_profiles")
         .select(
             "clerk_id,subjects,cambridge_transcript_level,teaching_level,"
-            "transcripts,verification_status,verification_notes,verification_decided_by,"
+            "transcripts,verification_status,verification_notes,"
             "auto_verification_status,auto_verification_score,"
             "auto_verification_flags,auto_verification_summary,auto_verified_at"
         )
         .order("created_at", desc=False)
     )
-
 
 def _merge_profile_user(profile: dict, user: dict | None) -> AdminTutorQueueItem:
     return AdminTutorQueueItem(**{**profile, **(user or {})})
