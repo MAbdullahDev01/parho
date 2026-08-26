@@ -8,6 +8,9 @@ export default clerkMiddleware(async (auth, req) => {
   const path = req.nextUrl.pathname;
 
   if (path === '/onboarding') {
+    if (isAuthenticated && isAdmin){
+      return NextResponse.redirect(new URL('/dashboard/admin', req.url));
+    }
     if (isAuthenticated && role) {
       return NextResponse.redirect(new URL(`/dashboard/${role}`, req.url));
     }
