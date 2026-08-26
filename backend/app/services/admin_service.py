@@ -56,10 +56,18 @@ def get_tutor_for_verification(clerk_id: str) -> AdminTutorQueueItem:
             get_supabase()
             .table("tutor_profiles")
             .select(
-                "clerk_id,subjects,cambridge_transcript_level,teaching_level,"
-                "transcripts,verification_status,verification_notes,verification_decided_by,"
-                "auto_verification_status,auto_verification_score,"
-                "auto_verification_flags,auto_verification_summary,auto_verified_at"
+                "clerk_id",
+                "subjects",
+                "cambridge_transcript_level",
+                "teaching_level",
+                "transcripts",
+                "verification_status",
+                "verification_notes",
+                "auto_verification_status",
+                "auto_verification_score",
+                "auto_verification_flags",
+                "auto_verification_summary",
+                "auto_verified_at"
             )
             .eq("clerk_id", clerk_id)
             .maybe_single()
