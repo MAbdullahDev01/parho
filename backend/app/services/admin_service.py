@@ -15,7 +15,7 @@ def _profile_query():
         .table("tutor_profiles")
         .select(
             "clerk_id,subjects,cambridge_transcript_level,teaching_level,"
-            "transcripts,verification_status,verification_notes,"
+            "transcripts,verification_status,verification_notes,verification_decided_by,"
             "auto_verification_status,auto_verification_score,"
             "auto_verification_flags,auto_verification_summary,auto_verified_at"
         )
@@ -58,7 +58,7 @@ def get_tutor_for_verification(clerk_id: str) -> AdminTutorQueueItem:
             .table("tutor_profiles")
             .select(
                 "clerk_id,subjects,cambridge_transcript_level,teaching_level,"
-                "transcripts,verification_status,verification_notes,"
+                "transcripts,verification_status,verification_notes,verification_decided_by,"
                 "auto_verification_status,auto_verification_score,"
                 "auto_verification_flags,auto_verification_summary,auto_verified_at"
             )
@@ -91,9 +91,12 @@ def decide_tutor_verification(
     clerk_id: str,
     decision: str,
     notes: str | None,
+    decided_by: str,
 ) -> AdminVerificationDecisionResponse:
     if decision not in {"verified", "rejected"}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification decision")
+    if not decided_by.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Admin identity is required")
 
     try:
         existing = (
@@ -113,6 +116,7 @@ def decide_tutor_verification(
             .update({
                 "verification_status": decision,
                 "verification_notes": notes.strip() if notes and notes.strip() else None,
+                "verification_decided_by": decided_by.strip(),
             })
             .eq("clerk_id", clerk_id)
             .execute()
@@ -125,6 +129,7 @@ def decide_tutor_verification(
             clerk_id=row["clerk_id"],
             verification_status=row["verification_status"],
             verification_notes=row.get("verification_notes"),
+            verification_decided_by=row["verification_decided_by"],
         )
     except HTTPException:
         raise

@@ -20,6 +20,7 @@ class AdminTutorQueueItem(BaseModel):
     transcripts: list[TranscriptRecord]
     verification_status: Literal["unverified", "pending", "verified", "rejected"]
     verification_notes: str | None = None
+    verification_decided_by: str | None = None
     auto_verification_status: Literal["not_run", "running", "passed", "flagged", "error"]
     auto_verification_score: float | None = None
     auto_verification_flags: list[dict] = Field(default_factory=list)
@@ -36,6 +37,7 @@ class AdminVerificationDecisionResponse(BaseModel):
     clerk_id: str
     verification_status: Literal["verified", "rejected"]
     verification_notes: str | None = None
+    verification_decided_by: str
 
 
 class AdminTranscriptUrl(BaseModel):

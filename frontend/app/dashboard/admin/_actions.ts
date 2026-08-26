@@ -19,6 +19,7 @@ export type AdminTutor = {
   }>;
   verification_status: "unverified" | "pending" | "verified" | "rejected";
   verification_notes: string | null;
+  verification_decided_by: string | null;
   auto_verification_status: "not_run" | "running" | "passed" | "flagged" | "error";
   auto_verification_score: number | null;
   auto_verification_flags: Array<{
@@ -100,12 +101,16 @@ export async function decideTutorVerification(
   decision: "verified" | "rejected",
   notes: string,
 ) {
-  await requireAdmin();
+  const adminId = await requireAdmin();
   const response = await fetch(
     getBackendUrl(`/api/backend/admin/tutors/${encodeURIComponent(clerkId)}/verification`),
     {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...getBackendHeaders() },
+      headers: {
+        "Content-Type": "application/json",
+        ...getBackendHeaders(),
+        "X-Admin-Id": adminId,
+      },
       body: JSON.stringify({ decision, notes: notes.trim() || null }),
     },
   );
@@ -114,6 +119,7 @@ export async function decideTutorVerification(
     clerk_id: string;
     verification_status: "verified" | "rejected";
     verification_notes: string | null;
+    verification_decided_by: string;
   };
   revalidatePath("/dashboard/admin");
   return result;
