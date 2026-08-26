@@ -16,18 +16,15 @@ from app.services.admin_service import (
 
 router = APIRouter(prefix="/api/backend/admin", tags=["admin"])
 
-
 @router.get("/tutors/verification", response_model=list[AdminTutorQueueItem])
 def verification_queue(x_internal_secret: str | None = Header(default=None)):
     require_internal_secret(x_internal_secret)
     return list_tutor_verification_queue()
 
-
 @router.get("/tutors/{clerk_id}/verification", response_model=AdminTutorQueueItem)
 def tutor_verification(clerk_id: str, x_internal_secret: str | None = Header(default=None)):
     require_internal_secret(x_internal_secret)
     return get_tutor_for_verification(clerk_id)
-
 
 @router.get("/tutors/{clerk_id}/transcripts", response_model=list[AdminTranscriptUrl])
 def tutor_transcripts(clerk_id: str, x_internal_secret: str | None = Header(default=None)):
