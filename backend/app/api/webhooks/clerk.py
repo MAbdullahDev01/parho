@@ -5,7 +5,7 @@ from app.services.user_service import create_user_from_clerk_event
 
 router = APIRouter()
 
-
+# Handles incoming clerk webhooks.
 @router.post("/clerk", status_code=status.HTTP_200_OK)
 async def handle_clerk_webhook(request: Request):
     # Signature verification needs the RAW request body — reading it as
