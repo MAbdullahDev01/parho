@@ -4,7 +4,7 @@ from supabase import Client, create_client
 
 from app.core.config import settings
 
-
+# This is a cached Supabase client that is authenticated with the service role key. The service role key bypasses Row Level Security.
 @lru_cache
 def get_supabase() -> Client:
     """
