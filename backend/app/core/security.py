@@ -16,7 +16,11 @@ def verify_clerk_webhook(payload: bytes, headers: dict) -> dict:
 
     Raises HTTPException(400) if the signature doesn't match.
     """
-    wh = Webhook(settings.CLERK_WEBHOOK_SIGNING_SECRET)
+    signing_secret = settings.CLERK_WEBHOOK_SIGNING_SECRET if not settings.TESTING else settings.CLERK_WEBHOOK_SIGNING_SECRET_TESTING
+    if signing_secret is not None:
+        wh = Webhook(signing_secret)
+    else:
+        print("Warning: Clerk webhook signing secret is not set. Webhook verification is disabled.")
     try:
         event = wh.verify(payload, headers)
     except WebhookVerificationError as exc:

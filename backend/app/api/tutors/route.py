@@ -15,7 +15,6 @@ from app.services.tutor_service import get_tutor_profile, submit_tutor_profile
 
 router = APIRouter(prefix="/api/backend/tutors", tags=["tutors"])
 
-
 def require_tutor_request(
     x_internal_secret: str | None,
     x_tutor_id: str | None,
@@ -28,14 +27,14 @@ def require_tutor_request(
             detail="Tutor identity does not match the authenticated request.",
         )
 
-
+# Displays the available subjects for tutors to select from when creating their profile.
 @router.get("/subjects")
 def list_subjects(x_internal_secret: str | None = Header(default=None)) -> list[str]:
     """Fixed subject taxonomy the setup page renders as options."""
     require_internal_secret(x_internal_secret)
     return SUBJECT_TAXONOMY
 
-
+# Uploads a transcript file for a tutor. The file is stored in the backend and associated with the tutor's profile.
 @router.post("/transcripts", response_model=TranscriptUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_transcript_file(
     clerk_id: str = Form(...),
@@ -60,7 +59,7 @@ async def upload_transcript_file(
 
     return TranscriptUploadResponse(transcript=record)
 
-
+# Submits a tutor's profile for verification. If the profile already exists, it is updated instead of creating a duplicate. The verification status is reset to pending with every submission.
 @router.post("/profile", response_model=TutorProfileResponse, status_code=status.HTTP_200_OK)
 def submit_profile(
     payload: TutorProfileSubmission,
@@ -86,7 +85,7 @@ def submit_profile(
 
     return profile
 
-
+# Retrieves a tutor's profile by their Clerk ID. If the profile does not exist, a 404 error is returned.
 @router.get("/profile/{clerk_id}", response_model=TutorProfileResponse)
 def read_profile(
     clerk_id: str,
