@@ -16,7 +16,7 @@ AutoVerificationStatus = Literal[
     "error",
 ]
 
-
+# Represents a single uploaded transcript record.
 class TranscriptRecord(BaseModel):
     """One uploaded transcript, as stored in tutor_profiles.transcripts."""
 
@@ -25,11 +25,11 @@ class TranscriptRecord(BaseModel):
     transcript_type: TranscriptType
     uploaded_at: datetime
 
-
+# Represents the response to a transcript upload request.
 class TranscriptUploadResponse(BaseModel):
     transcript: TranscriptRecord
 
-
+# Represents the request body for finalizing a tutor profile submission.
 class TutorProfileSubmission(BaseModel):
     """
     Body for finalizing tutor setup. The frontend uploads each transcript
@@ -60,7 +60,7 @@ class TutorProfileSubmission(BaseModel):
 
         return self
 
-
+# Represents the response to a tutor profile request.
 class TutorProfileResponse(BaseModel):
     clerk_id: str
     subjects: list[str]
