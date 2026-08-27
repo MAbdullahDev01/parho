@@ -3,7 +3,7 @@ from svix.webhooks import Webhook, WebhookVerificationError
 
 from app.core.config import settings
 
-
+# Verifies incoming clerk webhooks using the signing secret from the Clerk dashboard.
 def verify_clerk_webhook(payload: bytes, headers: dict) -> dict:
     """
     Verifies a Clerk webhook request came from Clerk (not a spoofed request)
