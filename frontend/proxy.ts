@@ -1,4 +1,5 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
+import { redirect } from 'next/dist/server/api-utils';
 import { NextResponse } from 'next/server';
 
 export default clerkMiddleware(async (auth, req) => {
@@ -7,10 +8,13 @@ export default clerkMiddleware(async (auth, req) => {
   const isAdmin = sessionClaims?.metadata?.is_admin === true;
   const path = req.nextUrl.pathname;
 
-  if (path === '/onboarding') {
-    if (isAuthenticated && isAdmin){
-      return NextResponse.redirect(new URL('/dashboard/admin', req.url));
+  if (path.startsWith('/dashboard')) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
+  }
+
+  if (path === '/onboarding') {
     if (isAuthenticated && role) {
       return NextResponse.redirect(new URL(`/dashboard/${role}`, req.url));
     }
