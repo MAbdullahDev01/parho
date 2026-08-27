@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-
+# Represents the outer structure of every Clerk webhook payload.
 class ClerkWebhookEvent(BaseModel):
     """
     The outer shape of every Clerk webhook payload. `data` is left loose
