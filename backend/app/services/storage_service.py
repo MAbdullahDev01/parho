@@ -8,7 +8,7 @@ from app.schemas.tutor import TranscriptRecord, TranscriptType
 ALLOWED_CONTENT_TYPES = {"application/pdf", "image/jpeg", "image/png"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
 
-
+# Upload a transcript file to the private `transcripts` bucket and return a TranscriptRecord
 def upload_transcript(
     clerk_id: str,
     transcript_type: TranscriptType,
@@ -16,12 +16,6 @@ def upload_transcript(
     content_type: str,
     file_bytes: bytes,
 ) -> TranscriptRecord:
-    """
-    Uploads a single transcript file to the private `transcripts` bucket and
-    returns a TranscriptRecord describing where it landed. The frontend calls
-    this once per file during tutor setup, then bundles the returned records
-    into the final profile submission.
-    """
     if content_type not in ALLOWED_CONTENT_TYPES:
         raise ValueError(f"Unsupported file type: {content_type}. Use PDF, JPEG, or PNG.")
 
