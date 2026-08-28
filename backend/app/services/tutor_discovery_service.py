@@ -24,14 +24,14 @@ def search_tutors(
             .table("tutor_profiles")
             .select(
                 "clerk_id,subjects,teaching_level,verification_status,"
-                "users!inner(first_name,last_name,avatar_url,role),"
-                "user_profiles!inner(bio,hourly_rate,rating,rating_count)"
+                "bio,hourly_rate,rating,rating_count,"
+                "users!inner(first_name,last_name,avatar_url,role)"
             )
             .eq("verification_status", "verified")
             .eq("users.role", "tutor")
-            .gte("user_profiles.rating", min_rating)
-            .order("rating", referenced_table="user_profiles", desc=True)
-            .order("rating_count", referenced_table="user_profiles", desc=True)
+            .gte("rating", min_rating)
+            .order("rating", desc=True)
+            .order("rating_count", desc=True)
             .range(offset, offset + limit - 1)
         )
 
@@ -48,22 +48,21 @@ def search_tutors(
             detail="Unable to search tutors right now. Please try again.",
         ) from exc
 
-    rows = response.data or []
+    rows = (response.data if response is not None else None) or []
     tutors: list[TutorDiscoveryCard] = []
 
     for row in rows:
         user = row.get("users") or {}
-        profile = row.get("user_profiles") or {}
         tutors.append(
             TutorDiscoveryCard(
                 clerk_id=row["clerk_id"],
                 first_name=user.get("first_name"),
                 last_name=user.get("last_name"),
                 avatar_url=user.get("avatar_url"),
-                bio=profile.get("bio"),
-                hourly_rate=float(profile.get("hourly_rate") or 0),
-                rating=float(profile.get("rating") or 0),
-                rating_count=int(profile.get("rating_count") or 0),
+                bio=row.get("bio"),
+                hourly_rate=float(row.get("hourly_rate") or 0),
+                rating=float(row.get("rating") or 0),
+                rating_count=int(row.get("rating_count") or 0),
                 subjects=row.get("subjects") or [],
                 teaching_level=row["teaching_level"],
                 verification_status="verified",
@@ -80,13 +79,12 @@ def get_public_tutor(clerk_id: str) -> TutorDiscoveryCard | None:
             .table("tutor_profiles")
             .select(
                 "clerk_id,subjects,teaching_level,verification_status,"
-                "users!inner(first_name,last_name,avatar_url,role),"
-                "user_profiles!inner(bio,hourly_rate,rating,rating_count)"
+                "bio,hourly_rate,rating,rating_count,"
+                "users!inner(first_name,last_name,avatar_url,role)"
             )
             .eq("clerk_id", clerk_id)
             .eq("verification_status", "verified")
             .eq("users.role", "tutor")
-            .maybe_single()
             .execute()
         )
     except Exception as exc:
@@ -95,21 +93,21 @@ def get_public_tutor(clerk_id: str) -> TutorDiscoveryCard | None:
             detail="Unable to load this tutor right now.",
         ) from exc
 
-    if not response.data:
+    rows = (response.data if response is not None else None) or []
+    if not rows:
         return None
 
-    row = response.data
+    row = rows[0]
     user = row.get("users") or {}
-    profile = row.get("user_profiles") or {}
     return TutorDiscoveryCard(
         clerk_id=row["clerk_id"],
         first_name=user.get("first_name"),
         last_name=user.get("last_name"),
         avatar_url=user.get("avatar_url"),
-        bio=profile.get("bio"),
-        hourly_rate=float(profile.get("hourly_rate") or 0),
-        rating=float(profile.get("rating") or 0),
-        rating_count=int(profile.get("rating_count") or 0),
+        bio=row.get("bio"),
+        hourly_rate=float(row.get("hourly_rate") or 0),
+        rating=float(row.get("rating") or 0),
+        rating_count=int(row.get("rating_count") or 0),
         subjects=row.get("subjects") or [],
         teaching_level=row["teaching_level"],
         verification_status="verified",
