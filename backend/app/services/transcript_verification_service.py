@@ -27,23 +27,23 @@ Do not make a final verification decision. Be conservative: uncertainty should b
 
 Return ONLY valid JSON matching this shape:
 {
-  "risk_score": 0,
-  "verdict": "pass",
-  "flags": [
+"risk_score": 0,
+"verdict": "pass",
+"flags": [
     {
-      "code": "string",
-      "severity": "low|medium|high",
-      "evidence": "short observable explanation"
+    "code": "string",
+    "severity": "low|medium|high",
+    "evidence": "short observable explanation"
     }
-  ],
-  "summary": "short explanation"
+],
+"summary": "short explanation"
 }
 
 risk_score is 0-100, where higher means more reasons for a human reviewer to inspect the document.
 Use verdict "flag" when there is a meaningful reason for manual review; otherwise use "pass".
 """
 
-
+# Decode the result of the automated verification
 def _decode_result(text: str) -> dict[str, Any]:
     try:
         result = json.loads(text)
@@ -71,7 +71,7 @@ def _decode_result(text: str) -> dict[str, Any]:
         "summary": summary[:2000],
     }
 
-
+# Build the file input for the automated verification request
 def _build_file_input(file_bytes: bytes, filename: str) -> dict[str, str]:
     extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     mime = {
@@ -99,7 +99,7 @@ def _build_file_input(file_bytes: bytes, filename: str) -> dict[str, str]:
         "detail": "high",
     }
 
-
+# Screen a single transcript document using the automated verification model
 def _screen_document(
     file_bytes: bytes,
     filename: str,
@@ -129,7 +129,7 @@ def _screen_document(
 
     return _decode_result(response.output_text)
 
-
+# Run the automated verification on a tutor's transcripts and persist the results
 def run_auto_verification(
     clerk_id: str,
     transcripts: list[dict[str, Any]],

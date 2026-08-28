@@ -1,16 +1,8 @@
 from app.db.supabase import get_supabase
 from app.schemas.clerk import ClerkUserData
 
-
+# Create a new user in the Supabase `users` table from a Clerk `user.created` webhook event
 def create_user_from_clerk_event(data: dict) -> dict:
-    """
-    Takes the `data` object from a Clerk `user.created` webhook event and
-    upserts a matching row into the Supabase `users` table.
-
-    Uses upsert on `clerk_id` (not insert) so that if Clerk redelivers the
-    same webhook — which it does on retries — we don't create duplicate
-    users or throw an error.
-    """
     user = ClerkUserData(**data)
 
     record = {
@@ -25,6 +17,7 @@ def create_user_from_clerk_event(data: dict) -> dict:
     response = supabase.table("users").upsert(record, on_conflict="clerk_id").execute()
     return response.data
 
+# Update the role of an existing user in the Supabase `users` table
 def set_user_role(clerk_id: str, role: str) -> dict:
     supabase = get_supabase()
     response = (

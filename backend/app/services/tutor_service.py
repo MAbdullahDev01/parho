@@ -3,13 +3,8 @@ from fastapi import HTTPException, status
 from app.db.supabase import get_supabase
 from app.schemas.tutor import TutorProfileResponse, TutorProfileSubmission
 
-
+# Upsert a tutor profile by Clerk ID so resubmitting setup updates the existing profile instead of creating a duplicate. Every submission resets verification to pending because the verified facts may have changed.
 def submit_tutor_profile(submission: TutorProfileSubmission) -> TutorProfileResponse:
-    """
-    Upsert a tutor profile by Clerk ID so resubmitting setup updates the
-    existing profile instead of creating a duplicate. Every submission resets
-    verification to pending because the verified facts may have changed.
-    """
     record = {
         "clerk_id": submission.clerk_id,
         "subjects": submission.subjects,
@@ -41,7 +36,7 @@ def submit_tutor_profile(submission: TutorProfileSubmission) -> TutorProfileResp
 
     return TutorProfileResponse(**response.data[0])
 
-
+# Get a tutor profile by Clerk ID, returning None if not found
 def get_tutor_profile(clerk_id: str) -> TutorProfileResponse | None:
     try:
         response = (
