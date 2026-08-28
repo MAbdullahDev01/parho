@@ -8,24 +8,33 @@ from app.schemas.admin import (
     AdminVerificationDecisionResponse,
 )
 
-
+# Helper function to query tutor profiles
 def _profile_query():
     return (
         get_supabase()
         .table("tutor_profiles")
         .select(
-            "clerk_id,subjects,cambridge_transcript_level,teaching_level,"
-            "transcripts,verification_status,verification_notes,"
-            "auto_verification_status,auto_verification_score,"
-            "auto_verification_flags,auto_verification_summary,auto_verified_at"
+            "clerk_id",
+            "subjects",
+            "cambridge_transcript_level",
+            "teaching_level",
+            "transcripts",
+            "verification_status",
+            "verification_notes",
+            "auto_verification_status",
+            "auto_verification_score",
+            "auto_verification_flags",
+            "auto_verification_summary",
+            "auto_verified_at"
         )
         .order("created_at", desc=False)
     )
 
+# Helper function to merge profile and user data into a single AdminTutorQueueItem
 def _merge_profile_user(profile: dict, user: dict | None) -> AdminTutorQueueItem:
     return AdminTutorQueueItem(**{**profile, **(user or {})})
 
-
+# List all tutors in the verification queue
 def list_tutor_verification_queue() -> list[AdminTutorQueueItem]:
     try:
         profiles_response = _profile_query().in_("verification_status", ["pending", "rejected"]).execute()
@@ -49,7 +58,7 @@ def list_tutor_verification_queue() -> list[AdminTutorQueueItem]:
             detail="Unable to load the tutor verification queue.",
         ) from exc
 
-
+# Get a specific tutor's verification record
 def get_tutor_for_verification(clerk_id: str) -> AdminTutorQueueItem:
     try:
         profile_response = (
@@ -93,7 +102,7 @@ def get_tutor_for_verification(clerk_id: str) -> AdminTutorQueueItem:
             detail="Unable to load the tutor verification record.",
         ) from exc
 
-
+# Decide on a tutor's verification status
 def decide_tutor_verification(
     clerk_id: str,
     decision: str,
@@ -146,7 +155,7 @@ def decide_tutor_verification(
             detail="Unable to save the verification decision.",
         ) from exc
 
-
+# Get secure URLs for a tutor's transcripts
 def get_transcript_urls(clerk_id: str) -> list[AdminTranscriptUrl]:
     tutor = get_tutor_for_verification(clerk_id)
     results: list[AdminTranscriptUrl] = []
