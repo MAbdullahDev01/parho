@@ -7,7 +7,11 @@ export default async function DashboardEntryPage() {
   if (!isAuthenticated) return redirectToSignIn();
 
   const role = sessionClaims?.metadata?.role;
+  const isAdmin = sessionClaims?.metadata?.is_admin === true;
+  
   if (!role) redirect("/onboarding");
 
-  redirect(`/dashboard/${role}`);
+  if (!isAdmin) {
+    redirect(`/dashboard/${role}`);
+  }
 }

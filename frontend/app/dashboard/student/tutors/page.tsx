@@ -8,7 +8,7 @@ export default async function TutorsPage() {
 
   if (!isAuthenticated) return redirectToSignIn();
 
-  if (sessionClaims?.metadata?.role !== "student") {
+  if (sessionClaims?.metadata?.role !== "student" && sessionClaims?.metadata?.is_admin !== true) {
     redirect("/dashboard");
   }
 
