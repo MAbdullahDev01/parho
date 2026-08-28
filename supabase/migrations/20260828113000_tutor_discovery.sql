@@ -14,6 +14,12 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
   CONSTRAINT user_profiles_clerk_id_fkey FOREIGN KEY (clerk_id) REFERENCES public.users(clerk_id) ON DELETE CASCADE
 );
 
+-- Backfill profiles for accounts that already existed before this migration.
+INSERT INTO public.user_profiles (clerk_id)
+SELECT u.clerk_id
+FROM public.users u
+ON CONFLICT (clerk_id) DO NOTHING;
+
 CREATE INDEX IF NOT EXISTS idx_user_profiles_rating ON public.user_profiles (rating DESC, rating_count DESC);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_updated_at ON public.user_profiles (updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_tutor_profiles_discovery_verification ON public.tutor_profiles (verification_status, teaching_level);
