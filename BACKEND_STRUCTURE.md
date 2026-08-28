@@ -1,3 +1,4 @@
+```text
 Backend
 ├─ app/
 │  ├─ api/
@@ -43,3 +44,4 @@ Backend
 ├─ .env
 ├─ .python-version
 └─ requirements.txt
+```
