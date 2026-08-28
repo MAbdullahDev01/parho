@@ -47,3 +47,8 @@ backend/venv/*
 backend/**/__pycache__/
 *.py[cod]
 *$py.class
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
