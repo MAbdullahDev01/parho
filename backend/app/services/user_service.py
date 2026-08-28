@@ -15,6 +15,14 @@ def create_user_from_clerk_event(data: dict) -> dict:
 
     supabase = get_supabase()
     response = supabase.table("users").upsert(record, on_conflict="clerk_id").execute()
+
+    # Every account gets a lightweight public profile row. Tutor discovery
+    # joins against this table for bio, pricing, and rating data.
+    supabase.table("user_profiles").upsert(
+        {"clerk_id": user.id},
+        on_conflict="clerk_id",
+    ).execute()
+
     return response.data
 
 # Update the role of an existing user in the Supabase `users` table
