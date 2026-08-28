@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const backendUrl = process.env.BACKEND_INTERNAL_URL;
-const internalSecret = process.env.INTERNAL_API_SECRET;
+const internalSecret = process.env.BACKEND_INTERNAL_SECRET;
 
 export async function GET(
   _request: Request,
