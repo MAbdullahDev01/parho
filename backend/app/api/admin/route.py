@@ -40,12 +40,6 @@ def tutor_verification_decision(
     clerk_id: str,
     payload: AdminVerificationDecisionRequest,
     x_internal_secret: str | None = Header(default=None),
-    x_admin_id: str | None = Header(default=None),
 ):
     require_internal_secret(x_internal_secret)
-    if not x_admin_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Admin identity is required for verification decisions.",
-        )
-    return decide_tutor_verification(clerk_id, payload.decision, payload.notes, x_admin_id)
+    return decide_tutor_verification(clerk_id, payload.decision, payload.notes)

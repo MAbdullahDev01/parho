@@ -107,7 +107,6 @@ def decide_tutor_verification(
     clerk_id: str,
     decision: str,
     notes: str | None,
-    decided_by: str,
 ) -> AdminVerificationDecisionResponse:
     if decision not in {"verified", "rejected"}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification decision")
