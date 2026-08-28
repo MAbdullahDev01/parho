@@ -36,7 +36,6 @@ class AdminVerificationDecisionResponse(BaseModel):
     clerk_id: str
     verification_status: Literal["verified", "rejected"]
     verification_notes: str | None = None
-    verification_decided_by: str
 
 # Represents a transcript and its corresponding URL. This is used to return the transcript URL for a given transcript record.
 class AdminTranscriptUrl(BaseModel):

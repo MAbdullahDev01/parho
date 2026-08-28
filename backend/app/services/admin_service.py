@@ -132,7 +132,6 @@ def decide_tutor_verification(
             .update({
                 "verification_status": decision,
                 "verification_notes": notes.strip() if notes and notes.strip() else None,
-                "verification_decided_by": decided_by.strip(),
             })
             .eq("clerk_id", clerk_id)
             .execute()
