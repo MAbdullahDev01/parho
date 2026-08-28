@@ -1,7 +1,9 @@
 from app.db.supabase import get_supabase
 from app.schemas.clerk import ClerkUserData
 
-# Create a new user in the Supabase `users` table from a Clerk `user.created` webhook event
+
+# Create a new user in the Supabase `users` table from a Clerk `user.created`
+# webhook event. Role-specific profile rows are created when the role is known.
 def create_user_from_clerk_event(data: dict) -> dict:
     user = ClerkUserData(**data)
 
@@ -15,9 +17,14 @@ def create_user_from_clerk_event(data: dict) -> dict:
 
     supabase = get_supabase()
     response = supabase.table("users").upsert(record, on_conflict="clerk_id").execute()
+
+    # Clerk's user.created event normally does not contain Parho's application
+    # role, so role-specific profiles are created later by set_user_role().
     return response.data
 
-# Update the role of an existing user in the Supabase `users` table
+
+# Update the role of an existing user and create the corresponding
+# role-specific profile row when a role is assigned.
 def set_user_role(clerk_id: str, role: str) -> dict:
     supabase = get_supabase()
     response = (
@@ -26,4 +33,11 @@ def set_user_role(clerk_id: str, role: str) -> dict:
         .eq("clerk_id", clerk_id)
         .execute()
     )
+
+    if role == "student":
+        supabase.table("student_profiles").upsert(
+            {"clerk_id": clerk_id},
+            on_conflict="clerk_id",
+        ).execute()
+
     return response.data

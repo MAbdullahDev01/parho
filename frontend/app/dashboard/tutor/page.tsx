@@ -1,5 +1,7 @@
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { currentUser } from "@clerk/nextjs/server";
-import Link from "next/link";
 import {
   AlertCircle,
   CalendarClock,
@@ -9,9 +11,7 @@ import {
   Video,
   Wallet,
 } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import Link from "next/link";
 import { getTutorDashboardProfile } from "./_actions";
 
 // TODO: replace with real data once bookings/earnings tables exist.
