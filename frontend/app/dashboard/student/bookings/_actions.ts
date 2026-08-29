@@ -20,7 +20,7 @@ export type AvailabilityWindow = { id: string | null; tutor_clerk_id: string; da
 
 function backend(path: string) {
   const base = process.env.BACKEND_INTERNAL_URL;
-  const secret = process.env.INTERNAL_API_SECRET;
+  const secret = process.env.BACKEND_INTERNAL_SECRET;
   if (!base || !secret) throw new Error('Backend booking configuration is missing.');
   return { url: `${base.replace(/\/$/, '')}${path}`, headers: { 'x-internal-secret': secret } };
 }

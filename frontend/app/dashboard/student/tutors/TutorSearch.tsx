@@ -187,7 +187,7 @@ export default function TutorSearch() {
 
                   <div className="mt-auto flex items-center justify-between gap-4 pt-5">
                     <div><span className="text-lg font-semibold">PKR {tutor.hourly_rate.toLocaleString()}</span><span className="text-xs text-slate"> / hour</span></div>
-                    <Link href={`/tutors/${tutor.clerk_id}`} className="rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-bone hover:bg-ink-soft">View profile</Link>
+                    <Link href={`/dashboard/student/tutors/${tutor.clerk_id}`} className="rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-bone hover:bg-ink-soft">View profile</Link>
                   </div>
                 </article>
               ))}

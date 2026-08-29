@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import BookDemo from "./BookDemo";
 
 const backendUrl = process.env.BACKEND_INTERNAL_URL;
-const internalSecret = process.env.INTERNAL_API_SECRET;
+const internalSecret = process.env.BACKEND_INTERNAL_SECRET;
 
 type Tutor = {
   clerk_id: string;
