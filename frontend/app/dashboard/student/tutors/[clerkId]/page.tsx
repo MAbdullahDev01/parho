@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+import BookDemo from "./BookDemo";
 
 const backendUrl = process.env.BACKEND_INTERNAL_URL;
 const internalSecret = process.env.INTERNAL_API_SECRET;
@@ -45,8 +46,8 @@ export default async function TutorProfilePage({ params }: { params: Promise<{ c
 
   return (
     <main className="min-h-screen px-5 py-10 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-4xl">
-        <Link href="/tutors" className="font-mono text-xs uppercase tracking-[0.16em] text-stamp hover:underline">← Back to tutors</Link>
+      <div className="mx-auto max-w-5xl">
+        <Link href="/dashboard/student/tutors" className="font-mono text-xs uppercase tracking-[0.16em] text-stamp hover:underline">← Back to tutors</Link>
 
         <section className="mt-7 rounded-3xl border bg-card p-6 shadow-card sm:p-9">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
@@ -72,22 +73,30 @@ export default async function TutorProfilePage({ params }: { params: Promise<{ c
 
           <div className="my-8 tear-line text-line-light" />
 
-          <div className="grid gap-6 sm:grid-cols-3">
-            <div><p className="font-mono text-xs uppercase tracking-wide text-slate">Rating</p><p className="mt-1 text-2xl font-semibold">{tutor.rating.toFixed(1)} <span className="text-sm font-normal text-slate">/ 5</span></p><p className="text-xs text-graphite">{tutor.rating_count} reviews</p></div>
-            <div><p className="font-mono text-xs uppercase tracking-wide text-slate">Hourly rate</p><p className="mt-1 text-2xl font-semibold">PKR {tutor.hourly_rate.toLocaleString()}</p><p className="text-xs text-graphite">per hour</p></div>
-            <div><p className="font-mono text-xs uppercase tracking-wide text-slate">Level</p><p className="mt-1 text-2xl font-semibold">{levelLabel(tutor.teaching_level)}</p><p className="text-xs text-graphite">Cambridge curriculum</p></div>
-          </div>
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div>
+              <div className="grid gap-6 sm:grid-cols-3">
+                <div><p className="font-mono text-xs uppercase tracking-wide text-slate">Rating</p><p className="mt-1 text-2xl font-semibold">{tutor.rating.toFixed(1)} <span className="text-sm font-normal text-slate">/ 5</span></p><p className="text-xs text-graphite">{tutor.rating_count} reviews</p></div>
+                <div><p className="font-mono text-xs uppercase tracking-wide text-slate">Hourly rate</p><p className="mt-1 text-2xl font-semibold">PKR {tutor.hourly_rate.toLocaleString()}</p><p className="text-xs text-graphite">per hour</p></div>
+                <div><p className="font-mono text-xs uppercase tracking-wide text-slate">Level</p><p className="mt-1 text-2xl font-semibold">{levelLabel(tutor.teaching_level)}</p><p className="text-xs text-graphite">Cambridge curriculum</p></div>
+              </div>
 
-          <div className="mt-9">
-            <h2 className="text-2xl font-semibold">About this tutor</h2>
-            <p className="mt-3 whitespace-pre-wrap leading-7 text-slate">{tutor.bio || "This tutor has not added a bio yet."}</p>
-          </div>
+              <div className="mt-9">
+                <h2 className="text-2xl font-semibold">About this tutor</h2>
+                <p className="mt-3 whitespace-pre-wrap leading-7 text-slate">{tutor.bio || "This tutor has not added a bio yet."}</p>
+              </div>
 
-          <div className="mt-9">
-            <h2 className="text-2xl font-semibold">Subjects taught</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {tutor.subjects.map((subject) => <span key={subject} className="rounded-full border bg-page px-3 py-1.5 text-sm text-slate">{subject}</span>)}
+              <div className="mt-9">
+                <h2 className="text-2xl font-semibold">Subjects taught</h2>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {tutor.subjects.map((subject) => <span key={subject} className="rounded-full border bg-page px-3 py-1.5 text-sm text-slate">{subject}</span>)}
+                </div>
+              </div>
             </div>
+
+            <aside className="lg:sticky lg:top-6 lg:self-start">
+              <BookDemo tutorClerkId={tutor.clerk_id} />
+            </aside>
           </div>
         </section>
       </div>
