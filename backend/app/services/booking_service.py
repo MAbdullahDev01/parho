@@ -1,16 +1,10 @@
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
 from app.db.supabase import get_supabase
-from app.schemas.booking import (
-    AvailabilityUpdateRequest,
-    AvailableSlot,
-    AvailabilityWindow,
-    Booking,
-    BookingCreateRequest,
-)
+from app.schemas.booking import AvailabilityUpdateRequest, AvailableSlot, AvailabilityWindow, Booking, BookingCreateRequest
 
 ACTIVE_STATUSES = ["confirmed", "completed"]
 
@@ -54,24 +48,30 @@ def get_tutor_availability(tutor_clerk_id: str, target_date: date) -> list[Avail
             .eq("day_of_week", weekday)
             .execute()
         )
+        if not windows_response.data:
+            return []
+
+        # Query a wider UTC range so bookings around midnight are not missed when
+        # the tutor's local date differs from UTC.
+        range_start = datetime.combine(target_date - timedelta(days=1), time.min).isoformat()
+        range_end = datetime.combine(target_date + timedelta(days=2), time.min).isoformat()
         bookings_response = (
             supabase.table("bookings")
             .select("start_at,end_at")
             .eq("tutor_clerk_id", tutor_clerk_id)
             .in_("status", ACTIVE_STATUSES)
-            .gte("start_at", datetime.combine(target_date, time.min).isoformat())
-            .lt("start_at", datetime.combine(target_date + timedelta(days=1), time.min).isoformat())
+            .gte("start_at", range_start)
+            .lt("start_at", range_end)
             .execute()
         )
         booked = [
-            (datetime.fromisoformat(row["start_at"].replace("Z", "+00:00")),
-             datetime.fromisoformat(row["end_at"].replace("Z", "+00:00")))
+            (datetime.fromisoformat(row["start_at"].replace("Z", "+00:00")), datetime.fromisoformat(row["end_at"].replace("Z", "+00:00")))
             for row in (bookings_response.data or [])
         ]
 
         now_utc = datetime.now(ZoneInfo("UTC"))
         slots: list[AvailableSlot] = []
-        for window in windows_response.data or []:
+        for window in windows_response.data:
             for local_start, local_end in _window_slots(
                 target_date,
                 time.fromisoformat(window["start_time"]),
@@ -106,13 +106,7 @@ def set_tutor_availability(tutor_clerk_id: str, payload: AvailabilityUpdateReque
         supabase.table("tutor_availability").delete().eq("tutor_clerk_id", tutor_clerk_id).execute()
         if payload.windows:
             rows = [
-                {
-                    "tutor_clerk_id": tutor_clerk_id,
-                    "day_of_week": window.day_of_week,
-                    "start_time": window.start_time.isoformat(),
-                    "end_time": window.end_time.isoformat(),
-                    "timezone": window.timezone,
-                }
+                {"tutor_clerk_id": tutor_clerk_id, "day_of_week": window.day_of_week, "start_time": window.start_time.isoformat(), "end_time": window.end_time.isoformat(), "timezone": window.timezone}
                 for window in payload.windows
             ]
             supabase.table("tutor_availability").insert(rows).execute()
@@ -132,11 +126,7 @@ def create_demo_booking(student_clerk_id: str, payload: BookingCreateRequest) ->
     try:
         response = get_supabase().rpc(
             "create_demo_booking",
-            {
-                "p_student_clerk_id": student_clerk_id,
-                "p_tutor_clerk_id": payload.tutor_clerk_id,
-                "p_start_at": payload.start_at.isoformat(),
-            },
+            {"p_student_clerk_id": student_clerk_id, "p_tutor_clerk_id": payload.tutor_clerk_id, "p_start_at": payload.start_at.isoformat()},
         ).execute()
         if not response.data:
             raise HTTPException(status_code=409, detail="That demo slot is no longer available.")
@@ -153,12 +143,7 @@ def create_demo_booking(student_clerk_id: str, payload: BookingCreateRequest) ->
 
 def list_student_bookings(student_clerk_id: str) -> list[Booking]:
     try:
-        response = (
-            get_supabase().table("bookings").select("*")
-            .eq("student_clerk_id", student_clerk_id)
-            .order("start_at", desc=False)
-            .execute()
-        )
+        response = get_supabase().table("bookings").select("*").eq("student_clerk_id", student_clerk_id).order("start_at", desc=False).execute()
         return [_booking(row) for row in (response.data or [])]
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to load your bookings.") from exc
@@ -166,12 +151,7 @@ def list_student_bookings(student_clerk_id: str) -> list[Booking]:
 
 def list_tutor_bookings(tutor_clerk_id: str) -> list[Booking]:
     try:
-        response = (
-            get_supabase().table("bookings").select("*")
-            .eq("tutor_clerk_id", tutor_clerk_id)
-            .order("start_at", desc=False)
-            .execute()
-        )
+        response = get_supabase().table("bookings").select("*").eq("tutor_clerk_id", tutor_clerk_id).order("start_at", desc=False).execute()
         return [_booking(row) for row in (response.data or [])]
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to load tutor bookings.") from exc
