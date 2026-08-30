@@ -40,6 +40,10 @@ class Booking(BaseModel):
     id: str
     student_clerk_id: str
     tutor_clerk_id: str
+    student_first_name: str | None = None
+    student_last_name: str | None = None
+    tutor_first_name: str | None = None
+    tutor_last_name: str | None = None
     booking_type: BookingType
     status: BookingStatus
     start_at: datetime
