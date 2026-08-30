@@ -2,7 +2,7 @@ from fastapi import APIRouter, Header, HTTPException
 
 from app.api.dependencies import require_internal_secret
 from app.schemas.message import Message, MessageCreateRequest, MessageListResponse
-from app.services.message_service import complete_booking, list_messages, mark_messages_read, send_message
+from app.services.message_service import list_messages, mark_messages_read, send_message
 
 router = APIRouter(prefix="/api/backend/messages", tags=["messages"])
 
@@ -46,15 +46,4 @@ def read_booking_messages(
 ):
     _require_secret(x_internal_secret)
     mark_messages_read(booking_id, _require_user(x_user_id))
-    return None
-
-
-@router.post("/{booking_id}/complete", response_model=Message | None)
-def complete_demo_booking(
-    booking_id: str,
-    x_internal_secret: str | None = Header(default=None),
-    x_user_id: str | None = Header(default=None),
-):
-    _require_secret(x_internal_secret)
-    complete_booking(booking_id, _require_user(x_user_id))
     return None
