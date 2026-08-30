@@ -17,11 +17,18 @@ function formatSession(value: string) {
 
 type StudentSummary = {
   id: string;
+  firstName: string | null;
+  lastName: string | null;
   pending: number;
   confirmed: number;
   completed: number;
   nextSession: string | null;
 };
+
+function studentName(student: StudentSummary) {
+  const name = [student.firstName, student.lastName].filter(Boolean).join(' ').trim();
+  return name || 'Student';
+}
 
 export default async function TutorStudentsPage() {
   const bookings = await getTutorBookings();
@@ -31,12 +38,16 @@ export default async function TutorStudentsPage() {
   for (const booking of bookings) {
     const existing = students.get(booking.student_clerk_id) ?? {
       id: booking.student_clerk_id,
+      firstName: booking.student_first_name,
+      lastName: booking.student_last_name,
       pending: 0,
       confirmed: 0,
       completed: 0,
       nextSession: null,
     };
 
+    if (!existing.firstName) existing.firstName = booking.student_first_name;
+    if (!existing.lastName) existing.lastName = booking.student_last_name;
     if (booking.status === 'pending') existing.pending += 1;
     if (booking.status === 'confirmed') existing.confirmed += 1;
     if (booking.status === 'completed') existing.completed += 1;
@@ -53,7 +64,7 @@ export default async function TutorStudentsPage() {
     if (a.nextSession && b.nextSession) return new Date(a.nextSession).getTime() - new Date(b.nextSession).getTime();
     if (a.nextSession) return -1;
     if (b.nextSession) return 1;
-    return a.id.localeCompare(b.id);
+    return studentName(a).localeCompare(studentName(b));
   });
 
   const activeStudents = studentList.filter((student) => student.confirmed > 0 || student.pending > 0).length;
@@ -90,15 +101,14 @@ export default async function TutorStudentsPage() {
             </Card>
           ) : studentList.map((student) => (
             <Card key={student.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-indigo-50 text-sm font-semibold text-indigo-600">S</div>
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-indigo-50 text-sm font-semibold text-indigo-600">{studentName(student).charAt(0).toUpperCase()}</div>
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2"><p className="font-display font-semibold text-ink">Student</p>{student.pending > 0 && <Badge variant="amber">Pending</Badge>}{student.confirmed > 0 && <Badge variant="emerald">Confirmed</Badge>}</div>
-                <p className="mt-1 truncate text-xs text-slate-500">Student reference: {student.id}</p>
+                <div className="flex flex-wrap items-center gap-2"><p className="font-display font-semibold text-ink">{studentName(student)}</p>{student.pending > 0 && <Badge variant="amber">Pending</Badge>}{student.confirmed > 0 && <Badge variant="emerald">Confirmed</Badge>}</div>
                 <p className="mt-1 text-xs text-slate-500">{student.completed} completed · {student.confirmed} confirmed · {student.pending} pending</p>
                 {student.nextSession && <p className="mt-1 text-xs font-medium text-ink">Next session: {formatSession(student.nextSession)}</p>}
               </div>
               <div className="flex shrink-0 gap-2">
-                <Link href="/dashboard/tutor/students/bookings"><Button size="sm" variant="outline">Bookings</Button></Link>
+                <Link href={`/dashboard/tutor/students/bookings?studentId=${encodeURIComponent(student.id)}`}><Button size="sm" variant="outline">Bookings</Button></Link>
                 {student.confirmed > 0 && <Link href="/dashboard/tutor/students/messages"><Button size="sm"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Messages</Button></Link>}
               </div>
             </Card>
