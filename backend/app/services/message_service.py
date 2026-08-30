@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import HTTPException
 
 from app.db.supabase import get_supabase
@@ -93,7 +95,7 @@ def mark_messages_read(booking_id: str, clerk_id: str) -> int:
         response = (
             get_supabase()
             .table("messages")
-            .update({"read_at": "now()"})
+            .update({"read_at": datetime.now(timezone.utc).isoformat()})
             .eq("booking_id", booking_id)
             .eq("clerk_id_to", clerk_id)
             .is_("read_at", "null")
@@ -126,8 +128,6 @@ def complete_booking(booking_id: str, tutor_clerk_id: str) -> dict:
         raise HTTPException(status_code=403, detail="Only the tutor can complete this booking.")
     if booking["status"] != "confirmed":
         raise HTTPException(status_code=409, detail="Only a confirmed booking can be completed.")
-
-    from datetime import datetime, timezone
 
     end_at = datetime.fromisoformat(booking["end_at"].replace("Z", "+00:00"))
     if end_at > datetime.now(timezone.utc):
