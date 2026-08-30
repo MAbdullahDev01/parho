@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 
 from app.api.admin.route import router as admin_router
 from app.api.bookings.route import router as bookings_router
@@ -7,14 +8,15 @@ from app.api.webhooks.router import router as webhooks_router
 from app.api.users.route import router as user_router
 from app.api.tutors.route import router as tutor_router
 from app.api.tutor_discovery.route import router as tutor_discovery_router
-from app.core.error_handling import http_exception_handler
+from app.core.error_handling import http_exception_handler, validation_exception_handler
 
 app = FastAPI(title="Parho API")
 
-# Keep one consistent JSON error shape across every API route. The handler also
-# converts safe, user-facing Supabase errors that were wrapped by service-layer
-# 503 exceptions into useful 4xx responses.
+# Keep API errors consistent across every route. The handler also recovers
+# safe, user-facing Supabase business errors that service functions wrapped in
+# generic 503 exceptions.
 app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 app.include_router(webhooks_router)
 app.include_router(user_router)
