@@ -12,7 +12,9 @@ from app.schemas.booking import (
     BookingListResponse,
 )
 from app.services.booking_service import (
+    confirm_booking,
     create_demo_booking,
+    decline_booking,
     get_tutor_availability,
     get_tutor_availability_windows,
     list_student_bookings,
@@ -92,6 +94,26 @@ def tutor_bookings(
 ):
     _require_secret(x_internal_secret)
     return BookingListResponse(bookings=list_tutor_bookings(_require_user(x_user_id)))
+
+
+@router.post("/{booking_id}/confirm", response_model=Booking)
+def confirm_demo(
+    booking_id: str,
+    x_internal_secret: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None),
+):
+    _require_secret(x_internal_secret)
+    return confirm_booking(booking_id, _require_user(x_user_id))
+
+
+@router.post("/{booking_id}/decline", response_model=Booking)
+def decline_demo(
+    booking_id: str,
+    x_internal_secret: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None),
+):
+    _require_secret(x_internal_secret)
+    return decline_booking(booking_id, _require_user(x_user_id))
 
 
 @router.post("/{booking_id}/complete", response_model=Booking)
