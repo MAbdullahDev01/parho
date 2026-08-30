@@ -20,13 +20,12 @@ def _get_booking_for_participant(booking_id: str, clerk_id: str) -> dict:
             .table("bookings")
             .select("id,student_clerk_id,tutor_clerk_id,status,start_at,end_at")
             .eq("id", booking_id)
-            .maybe_single()
             .execute()
         )
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to load the booking.") from exc
 
-    booking = response.data
+    booking = response.data[0] if response.data else None
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found.")
     if clerk_id not in (booking["student_clerk_id"], booking["tutor_clerk_id"]):
@@ -81,19 +80,13 @@ def send_message(booking_id: str, sender_clerk_id: str, payload: MessageCreateRe
             .select("id,clerk_id_from,clerk_id_to,booking_id,content,created_at,read_at")
             .execute()
         )
-
         if not response.data:
             raise HTTPException(status_code=503, detail="Message was not created.")
-
         return _message(response.data[0])
     except HTTPException:
         raise
     except Exception as exc:
-        print(f"[MESSAGING] Supabase send error: {type(exc).__name__}: {exc}")
-        raise HTTPException(
-            status_code=503,
-            detail=f"Unable to send message: {type(exc).__name__}: {exc}",
-        ) from exc
+        raise HTTPException(status_code=503, detail="Unable to send message.") from exc
 
 
 def mark_messages_read(booking_id: str, clerk_id: str) -> int:
@@ -112,7 +105,6 @@ def mark_messages_read(booking_id: str, clerk_id: str) -> int:
     except HTTPException:
         raise
     except Exception as exc:
-        print(f"[MESSAGING] Supabase mark messages as read error: {type(exc).__name__}: {exc}")
         raise HTTPException(status_code=503, detail="Unable to mark messages as read.") from exc
 
 
@@ -121,15 +113,14 @@ def complete_booking(booking_id: str, tutor_clerk_id: str) -> dict:
         response = (
             get_supabase()
             .table("bookings")
-            .select("id,student_clerk_id,tutor_clerk_id,status,start_at,end_at,booking_type,created_at,updated_at")
+            .select("*")
             .eq("id", booking_id)
-            .maybe_single()
             .execute()
         )
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to load the booking.") from exc
 
-    booking = response.data
+    booking = response.data[0] if response.data else None
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found.")
     if booking["tutor_clerk_id"] != tutor_clerk_id:
@@ -150,9 +141,12 @@ def complete_booking(booking_id: str, tutor_clerk_id: str) -> dict:
             .eq("tutor_clerk_id", tutor_clerk_id)
             .eq("status", "confirmed")
             .select("*")
-            .single()
             .execute()
         )
-        return updated.data
+        if not updated.data:
+            raise HTTPException(status_code=409, detail="The booking could not be completed.")
+        return updated.data[0]
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to complete the booking.") from exc
