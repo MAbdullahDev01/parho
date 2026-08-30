@@ -1,10 +1,10 @@
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
 
-BookingStatus = Literal["confirmed", "cancelled", "completed", "no_show"]
+BookingStatus = Literal["pending", "confirmed", "cancelled", "completed", "no_show"]
 BookingType = Literal["demo"]
 
 
