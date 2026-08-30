@@ -7,6 +7,10 @@ export type Booking = {
   id: string;
   student_clerk_id: string;
   tutor_clerk_id: string;
+  student_first_name: string | null;
+  student_last_name: string | null;
+  tutor_first_name: string | null;
+  tutor_last_name: string | null;
   booking_type: 'demo';
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   start_at: string;
@@ -84,15 +88,13 @@ export async function getTutorBookings() {
 export async function confirmTutorBooking(bookingId: string) {
   const userId = await requireUser('tutor');
   const request = backend(`/api/backend/bookings/${encodeURIComponent(bookingId)}/confirm`);
-  const response = await fetch(request.url, {
-    method: 'POST',
-    headers: { ...request.headers, 'x-user-id': userId },
-  });
+  const response = await fetch(request.url, { method: 'POST', headers: { ...request.headers, 'x-user-id': userId } });
   if (!response.ok) throw new Error(await parseError(response));
   const booking = await response.json() as Booking;
   revalidatePath('/dashboard/tutor');
-  revalidatePath('/dashboard/tutor/bookings');
-  revalidatePath('/dashboard/tutor/messages');
+  revalidatePath('/dashboard/tutor/students');
+  revalidatePath('/dashboard/tutor/students/bookings');
+  revalidatePath('/dashboard/tutor/students/messages');
   revalidatePath('/dashboard/student');
   revalidatePath('/dashboard/student/bookings');
   return booking;
@@ -101,14 +103,12 @@ export async function confirmTutorBooking(bookingId: string) {
 export async function declineTutorBooking(bookingId: string) {
   const userId = await requireUser('tutor');
   const request = backend(`/api/backend/bookings/${encodeURIComponent(bookingId)}/decline`);
-  const response = await fetch(request.url, {
-    method: 'POST',
-    headers: { ...request.headers, 'x-user-id': userId },
-  });
+  const response = await fetch(request.url, { method: 'POST', headers: { ...request.headers, 'x-user-id': userId } });
   if (!response.ok) throw new Error(await parseError(response));
   const booking = await response.json() as Booking;
   revalidatePath('/dashboard/tutor');
-  revalidatePath('/dashboard/tutor/bookings');
+  revalidatePath('/dashboard/tutor/students');
+  revalidatePath('/dashboard/tutor/students/bookings');
   revalidatePath('/dashboard/student');
   revalidatePath('/dashboard/student/bookings');
   return booking;
@@ -122,12 +122,7 @@ export async function getTutorAvailabilityWindows() {
   return await response.json() as AvailabilityWindow[];
 }
 
-export async function saveTutorAvailability(windows: Array<{
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-  timezone: string;
-}>) {
+export async function saveTutorAvailability(windows: Array<{ day_of_week: number; start_time: string; end_time: string; timezone: string }>) {
   const userId = await requireUser('tutor');
   const request = backend(`/api/backend/bookings/tutors/${encodeURIComponent(userId)}/availability`);
   const response = await fetch(request.url, {
