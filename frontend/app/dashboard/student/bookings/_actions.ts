@@ -8,7 +8,7 @@ export type Booking = {
   student_clerk_id: string;
   tutor_clerk_id: string;
   booking_type: 'demo';
-  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
   start_at: string;
   end_at: string;
   created_at: string;
@@ -79,6 +79,39 @@ export async function getTutorBookings() {
   const response = await fetch(request.url, { headers: { ...request.headers, 'x-user-id': userId }, cache: 'no-store' });
   if (!response.ok) throw new Error(await parseError(response));
   return (await response.json() as { bookings: Booking[] }).bookings;
+}
+
+export async function confirmTutorBooking(bookingId: string) {
+  const userId = await requireUser('tutor');
+  const request = backend(`/api/backend/bookings/${encodeURIComponent(bookingId)}/confirm`);
+  const response = await fetch(request.url, {
+    method: 'POST',
+    headers: { ...request.headers, 'x-user-id': userId },
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  const booking = await response.json() as Booking;
+  revalidatePath('/dashboard/tutor');
+  revalidatePath('/dashboard/tutor/bookings');
+  revalidatePath('/dashboard/tutor/messages');
+  revalidatePath('/dashboard/student');
+  revalidatePath('/dashboard/student/bookings');
+  return booking;
+}
+
+export async function declineTutorBooking(bookingId: string) {
+  const userId = await requireUser('tutor');
+  const request = backend(`/api/backend/bookings/${encodeURIComponent(bookingId)}/decline`);
+  const response = await fetch(request.url, {
+    method: 'POST',
+    headers: { ...request.headers, 'x-user-id': userId },
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  const booking = await response.json() as Booking;
+  revalidatePath('/dashboard/tutor');
+  revalidatePath('/dashboard/tutor/bookings');
+  revalidatePath('/dashboard/student');
+  revalidatePath('/dashboard/student/bookings');
+  return booking;
 }
 
 export async function getTutorAvailabilityWindows() {
