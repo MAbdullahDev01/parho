@@ -79,14 +79,21 @@ def send_message(booking_id: str, sender_clerk_id: str, payload: MessageCreateRe
                 }
             )
             .select("id,clerk_id_from,clerk_id_to,booking_id,content,created_at,read_at")
-            .single()
             .execute()
         )
-        return _message(response.data)
+
+        if not response.data:
+            raise HTTPException(status_code=503, detail="Message was not created.")
+
+        return _message(response.data[0])
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=503, detail="Unable to send message.") from exc
+        print(f"[MESSAGING] Supabase send error: {type(exc).__name__}: {exc}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to send message: {type(exc).__name__}: {exc}",
+        ) from exc
 
 
 def mark_messages_read(booking_id: str, clerk_id: str) -> int:
@@ -105,6 +112,7 @@ def mark_messages_read(booking_id: str, clerk_id: str) -> int:
     except HTTPException:
         raise
     except Exception as exc:
+        print(f"[MESSAGING] Supabase mark messages as read error: {type(exc).__name__}: {exc}")
         raise HTTPException(status_code=503, detail="Unable to mark messages as read.") from exc
 
 
