@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from app.db.supabase import get_supabase
 from app.schemas.booking import AvailabilityUpdateRequest, AvailableSlot, AvailabilityWindow, Booking, BookingCreateRequest
 
-ACTIVE_STATUSES = ["confirmed", "completed"]
+ACTIVE_STATUSES = ["pending", "confirmed", "completed"]
 
 
 def _booking(row: dict) -> Booking:
@@ -51,8 +51,6 @@ def get_tutor_availability(tutor_clerk_id: str, target_date: date) -> list[Avail
         if not windows_response.data:
             return []
 
-        # Query a wider UTC range so bookings around midnight are not missed when
-        # the tutor's local date differs from UTC.
         range_start = datetime.combine(target_date - timedelta(days=1), time.min).isoformat()
         range_end = datetime.combine(target_date + timedelta(days=2), time.min).isoformat()
         bookings_response = (
@@ -155,3 +153,68 @@ def list_tutor_bookings(tutor_clerk_id: str) -> list[Booking]:
         return [_booking(row) for row in (response.data or [])]
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to load tutor bookings.") from exc
+
+
+def _get_booking(booking_id: str) -> dict:
+    try:
+        response = (
+            get_supabase().table("bookings")
+            .select("*")
+            .eq("id", booking_id)
+            .execute()
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Unable to load the booking.") from exc
+    if not response.data:
+        raise HTTPException(status_code=404, detail="Booking not found.")
+    return response.data[0]
+
+
+def confirm_booking(booking_id: str, tutor_clerk_id: str) -> Booking:
+    booking = _get_booking(booking_id)
+    if booking["tutor_clerk_id"] != tutor_clerk_id:
+        raise HTTPException(status_code=403, detail="Only the assigned tutor can confirm this booking.")
+    if booking["status"] != "pending":
+        raise HTTPException(status_code=409, detail="Only a pending booking can be confirmed.")
+    try:
+        response = (
+            get_supabase().table("bookings")
+            .update({"status": "confirmed"})
+            .eq("id", booking_id)
+            .eq("tutor_clerk_id", tutor_clerk_id)
+            .eq("status", "pending")
+            .select("*")
+            .execute()
+        )
+        if not response.data:
+            raise HTTPException(status_code=409, detail="This booking is no longer pending.")
+        return _booking(response.data[0])
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Unable to confirm the booking.") from exc
+
+
+def decline_booking(booking_id: str, tutor_clerk_id: str) -> Booking:
+    booking = _get_booking(booking_id)
+    if booking["tutor_clerk_id"] != tutor_clerk_id:
+        raise HTTPException(status_code=403, detail="Only the assigned tutor can decline this booking.")
+    if booking["status"] != "pending":
+        raise HTTPException(status_code=409, detail="Only a pending booking can be declined.")
+    try:
+        response = (
+            get_supabase().table("bookings")
+            .update({"status": "cancelled"})
+            .eq("id", booking_id)
+            .eq("tutor_clerk_id", tutor_clerk_id)
+            .eq("status", "pending")
+            .select("*")
+            .execute()
+        )
+        if not response.data:
+            raise HTTPException(status_code=409, detail="This booking is no longer pending.")
+        return _booking(response.data[0])
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Unable to decline the booking.") from exc
