@@ -17,9 +17,9 @@ export default async function TutorBookingsPage() {
 
   return (
     <div>
-      <Link href="/dashboard/tutor" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-ink"><ArrowLeft className="h-3.5 w-3.5" /> Back to dashboard</Link>
+      <Link href="/dashboard/tutor/students" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-ink"><ArrowLeft className="h-3.5 w-3.5" /> Back to students</Link>
       <div className="mt-5">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-600">Sessions</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-600">Students</p>
         <h1 className="mt-1 font-display text-2xl font-semibold text-ink">Bookings</h1>
         <p className="mt-1 text-sm text-slate-500">Review demo requests, confirm sessions, and message your students.</p>
       </div>
@@ -44,7 +44,7 @@ export default async function TutorBookingsPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                 {booking.status === 'pending' && <BookingDecisionButtons bookingId={booking.id} />}
-                {(booking.status === 'confirmed' || booking.status === 'completed') && <Link href={`/dashboard/tutor/messages?bookingId=${encodeURIComponent(booking.id)}`}><Button size="sm" variant="outline"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Message</Button></Link>}
+                {(booking.status === 'confirmed' || booking.status === 'completed') && <Link href={`/dashboard/tutor/students/messages?bookingId=${encodeURIComponent(booking.id)}`}><Button size="sm" variant="outline"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Message</Button></Link>}
                 {booking.status === 'confirmed' && ended && <CompleteBookingButton bookingId={booking.id} />}
               </div>
             </Card>
