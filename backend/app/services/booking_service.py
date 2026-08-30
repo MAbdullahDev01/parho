@@ -134,7 +134,17 @@ def create_demo_booking(student_clerk_id: str, payload: BookingCreateRequest) ->
         raise
     except Exception as exc:
         message = str(exc)
-        if any(fragment in message for fragment in ("already has a demo", "slot is no longer available", "not available", "Booking time must", "during this time")):
+
+        booking_errors = (
+            "already have a demo",
+            "already has a demo",
+            "slot is no longer available",
+            "not available",
+            "Booking time must",
+            "during this time",
+        )
+
+        if any(fragment.lower() in message.lower() for fragment in booking_errors):
             raise HTTPException(status_code=409, detail=message) from exc
         raise HTTPException(status_code=503, detail="Unable to create the demo booking.") from exc
 

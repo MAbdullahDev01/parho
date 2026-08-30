@@ -1,10 +1,10 @@
-import Link from 'next/link';
-import { ArrowLeft, CalendarClock, MessageCircle, Video } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { getTutorBookings } from '../../student/bookings/_actions';
+import { Card } from '@/components/ui/Card';
+import { ArrowLeft, CalendarClock, MessageCircle, Video } from 'lucide-react';
+import Link from 'next/link';
 import CompleteBookingButton from '../../messages/CompleteBookingButton';
+import { getTutorBookings } from '../../student/bookings/_actions';
 import BookingDecisionButtons from './BookingDecisionButtons';
 
 function formatDate(value: string) {

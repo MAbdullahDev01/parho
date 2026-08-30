@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { CheckCircle2, Loader2 } from 'lucide-react';
+import { useState, useTransition } from 'react';
 import { completeBooking } from './_actions';
 
 export default function CompleteBookingButton({ bookingId }: { bookingId: string }) {

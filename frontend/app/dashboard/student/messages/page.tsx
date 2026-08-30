@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import { ArrowLeft, MessageCircle } from 'lucide-react';
-import { auth } from '@clerk/nextjs/server';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import MessageThread from '../../messages/MessageThread';
+import { auth } from '@clerk/nextjs/server';
+import { ArrowLeft, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
 import { getMessages } from '../../messages/_actions';
+import MessageThread from '../../messages/MessageThread';
 import { getStudentBookings } from '../bookings/_actions';
 
 function formatDate(value: string) {

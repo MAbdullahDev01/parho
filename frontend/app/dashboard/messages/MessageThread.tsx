@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
-import type { FormEvent } from 'react';
-import { Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Loader2, Send } from 'lucide-react';
+import type { FormEvent } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { getMessages, markMessagesRead, sendMessage, type Message } from './_actions';
 
 function formatTime(value: string) {
