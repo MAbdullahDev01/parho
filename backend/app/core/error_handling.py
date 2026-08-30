@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 
@@ -21,14 +22,32 @@ _BAD_REQUEST_CODES = {
     "22008",  # datetime_field_overflow
 }
 
+_GENERIC_SERVICE_MESSAGES = {
+    "Internal server error.",
+    "Unable to create the demo booking.",
+    "Unable to save your tutor profile right now. Please try again.",
+    "Unable to load the tutor profile right now.",
+    "Unable to load the tutor verification queue.",
+    "Unable to load the tutor verification record.",
+    "Unable to save the verification decision.",
+    "Unable to create secure transcript links.",
+    "Unable to search tutors right now. Please try again.",
+    "Unable to load this tutor right now.",
+    "Unable to load the booking.",
+    "Unable to load messages.",
+    "Unable to send message.",
+    "Unable to mark messages as read.",
+    "Unable to complete the booking.",
+}
+
 
 def _api_error_payload(exc: BaseException) -> dict[str, Any] | None:
     """Extract the structured payload used by Supabase/PostgREST errors."""
-    payload = getattr(exc, "args", None)
-    if not payload:
+    args = getattr(exc, "args", None)
+    if not args:
         return None
 
-    first = payload[0]
+    first = args[0]
     return first if isinstance(first, dict) else None
 
 
@@ -43,9 +62,8 @@ def _friendly_database_error(exc: BaseException) -> tuple[int, str] | None:
     if not message:
         return None
 
-    # Messages raised deliberately by Parho's database functions are already
-    # written for users. Preserve them instead of replacing them with a generic
-    # service-unavailable response.
+    # P0001 is used by our database functions for deliberate business-rule
+    # errors such as duplicate demos or unavailable slots.
     if code == "P0001":
         return 409, message
 
@@ -53,18 +71,17 @@ def _friendly_database_error(exc: BaseException) -> tuple[int, str] | None:
         return 400, "The request contains invalid data. Please check your input and try again."
 
     if code in _CONFLICT_CODES:
-        # Keep common database messages useful without exposing SQL internals.
         lower = message.lower()
         if "duplicate" in lower or "already exists" in lower or "unique" in lower:
             return 409, "This record already exists. Please check your existing records and try again."
-        if "foreign key" in lower or "violates" in lower:
+        if "foreign key" in lower:
             return 409, "This action cannot be completed because the related record is unavailable."
         if "check constraint" in lower:
             return 400, "The provided data does not meet the requirements. Please check your input."
         return 409, message
 
     # Only return arbitrary database messages when they look intentionally
-    # user-facing. Avoid leaking table names, SQL, or infrastructure details.
+    # user-facing. Avoid leaking SQL, table names, or infrastructure details.
     safe_phrases = (
         "already have",
         "already has",
@@ -85,7 +102,7 @@ def _friendly_database_error(exc: BaseException) -> tuple[int, str] | None:
 
 def _resolve_http_error(exc: HTTPException) -> tuple[int, str]:
     detail = exc.detail
-    if isinstance(detail, str) and detail and detail != "Internal server error.":
+    if isinstance(detail, str) and detail and detail not in _GENERIC_SERVICE_MESSAGES:
         return exc.status_code, detail
 
     cause = exc.__cause__
@@ -100,3 +117,20 @@ def _resolve_http_error(exc: HTTPException) -> tuple[int, str]:
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     status_code, detail = _resolve_http_error(exc)
     return JSONResponse(status_code=status_code, content={"detail": detail})
+
+
+async def validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    errors = exc.errors()
+    first = errors[0] if errors else None
+    if first:
+        location = first.get("loc") or []
+        field = next((str(item) for item in reversed(location) if item != "body"), "field")
+        message = str(first.get("msg") or "Invalid value.")
+        detail = f"Please check {field}: {message}."
+    else:
+        detail = "Please check the submitted information and try again."
+
+    return JSONResponse(status_code=422, content={"detail": detail})
