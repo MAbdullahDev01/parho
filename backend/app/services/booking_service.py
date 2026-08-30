@@ -13,6 +13,46 @@ def _booking(row: dict) -> Booking:
     return Booking(**row)
 
 
+def _with_participant_names(rows: list[dict]) -> list[Booking]:
+    if not rows:
+        return []
+
+    student_ids = {row["student_clerk_id"] for row in rows if row.get("student_clerk_id")}
+    tutor_ids = {row["tutor_clerk_id"] for row in rows if row.get("tutor_clerk_id")}
+    user_ids = student_ids | tutor_ids
+
+    try:
+        response = (
+            get_supabase()
+            .table("users")
+            .select("clerk_id,first_name,last_name")
+            .in_("clerk_id", list(user_ids))
+            .execute()
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Unable to load booking participant details.") from exc
+
+    users = {user["clerk_id"]: user for user in (response.data or [])}
+    enriched: list[Booking] = []
+
+    for row in rows:
+        student = users.get(row.get("student_clerk_id"), {})
+        tutor = users.get(row.get("tutor_clerk_id"), {})
+        enriched.append(
+            _booking(
+                {
+                    **row,
+                    "student_first_name": student.get("first_name"),
+                    "student_last_name": student.get("last_name"),
+                    "tutor_first_name": tutor.get("first_name"),
+                    "tutor_last_name": tutor.get("last_name"),
+                }
+            )
+        )
+
+    return enriched
+
+
 def _window_slots(day: date, start: time, end: time, timezone: str):
     tz = ZoneInfo(timezone)
     cursor = datetime.combine(day, start, tzinfo=tz)
@@ -134,7 +174,6 @@ def create_demo_booking(student_clerk_id: str, payload: BookingCreateRequest) ->
         raise
     except Exception as exc:
         message = str(exc)
-
         booking_errors = (
             "already have a demo",
             "already has a demo",
@@ -143,7 +182,6 @@ def create_demo_booking(student_clerk_id: str, payload: BookingCreateRequest) ->
             "Booking time must",
             "during this time",
         )
-
         if any(fragment.lower() in message.lower() for fragment in booking_errors):
             raise HTTPException(status_code=409, detail=message) from exc
         raise HTTPException(status_code=503, detail="Unable to create the demo booking.") from exc
@@ -152,7 +190,9 @@ def create_demo_booking(student_clerk_id: str, payload: BookingCreateRequest) ->
 def list_student_bookings(student_clerk_id: str) -> list[Booking]:
     try:
         response = get_supabase().table("bookings").select("*").eq("student_clerk_id", student_clerk_id).order("start_at", desc=False).execute()
-        return [_booking(row) for row in (response.data or [])]
+        return _with_participant_names(response.data or [])
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to load your bookings.") from exc
 
@@ -160,7 +200,9 @@ def list_student_bookings(student_clerk_id: str) -> list[Booking]:
 def list_tutor_bookings(tutor_clerk_id: str) -> list[Booking]:
     try:
         response = get_supabase().table("bookings").select("*").eq("tutor_clerk_id", tutor_clerk_id).order("start_at", desc=False).execute()
-        return [_booking(row) for row in (response.data or [])]
+        return _with_participant_names(response.data or [])
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Unable to load tutor bookings.") from exc
 
