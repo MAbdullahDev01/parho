@@ -41,8 +41,8 @@ export default async function StudentBookingsPage() {
                 <p className="mt-1 text-sm text-slate-500">Tutor session · 30 minutes</p>
                 <p className="mt-2 text-sm font-medium text-ink">{formatDate(booking.start_at)}</p>
               </div>
-              {booking.status === 'confirmed' && new Date(booking.start_at) > new Date() && (
-                <Link href={`/dashboard/student/messages?with=${encodeURIComponent(booking.tutor_clerk_id)}`} className="shrink-0">
+              {(booking.status === 'confirmed' || booking.status === 'completed') && (
+                <Link href={`/dashboard/student/messages?bookingId=${encodeURIComponent(booking.id)}`} className="shrink-0">
                   <Button size="sm" variant="outline"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Message tutor</Button>
                 </Link>
               )}
