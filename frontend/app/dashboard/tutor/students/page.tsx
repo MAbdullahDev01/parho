@@ -98,7 +98,7 @@ export default async function TutorStudentsPage() {
                 {student.nextSession && <p className="mt-1 text-xs font-medium text-ink">Next session: {formatSession(student.nextSession)}</p>}
               </div>
               <div className="flex shrink-0 gap-2">
-                <Link href={`/dashboard/tutor/students/bookings?studentId=${encodeURIComponent(student.id)}`}><Button size="sm" variant="outline">Bookings</Button></Link>
+                <Link href="/dashboard/tutor/students/bookings"><Button size="sm" variant="outline">Bookings</Button></Link>
                 {student.confirmed > 0 && <Link href="/dashboard/tutor/students/messages"><Button size="sm"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Messages</Button></Link>}
               </div>
             </Card>
