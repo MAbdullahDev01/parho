@@ -61,7 +61,7 @@ export function DashboardShell({
 
   const renderNavLinks = (onNavigate?: () => void) =>
     navItems.map((item) => {
-      const active = pathname === item.href;
+      const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
       return (
         <Link
           key={item.href}
