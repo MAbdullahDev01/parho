@@ -13,6 +13,7 @@ const badgeVariants = cva(
         onDark: "bg-white/[0.06] text-bone",
         emerald: "bg-ledger-50 text-ledger",
         indigo: "bg-stamp-50 text-stamp-deep",
+        amber: "bg-amber-50 text-amber-700",
       },
     },
     defaultVariants: {
