@@ -19,12 +19,19 @@ from app.services.booking_service import (
     list_tutor_bookings,
     set_tutor_availability,
 )
+from app.services.message_service import complete_booking
 
 router = APIRouter(prefix="/api/backend/bookings", tags=["bookings"])
 
 
 def _require_secret(x_internal_secret: str | None):
     require_internal_secret(x_internal_secret)
+
+
+def _require_user(x_user_id: str | None) -> str:
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="User identity is required.")
+    return x_user_id
 
 
 @router.get("/tutors/{clerk_id}/availability/windows", response_model=list[AvailabilityWindow])
@@ -66,9 +73,7 @@ def book_demo(
     x_user_id: str | None = Header(default=None),
 ):
     _require_secret(x_internal_secret)
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="Student identity is required.")
-    return create_demo_booking(x_user_id, payload)
+    return create_demo_booking(_require_user(x_user_id), payload)
 
 
 @router.get("/student", response_model=BookingListResponse)
@@ -77,9 +82,7 @@ def student_bookings(
     x_user_id: str | None = Header(default=None),
 ):
     _require_secret(x_internal_secret)
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="Student identity is required.")
-    return BookingListResponse(bookings=list_student_bookings(x_user_id))
+    return BookingListResponse(bookings=list_student_bookings(_require_user(x_user_id)))
 
 
 @router.get("/tutor", response_model=BookingListResponse)
@@ -88,6 +91,14 @@ def tutor_bookings(
     x_user_id: str | None = Header(default=None),
 ):
     _require_secret(x_internal_secret)
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="Tutor identity is required.")
-    return BookingListResponse(bookings=list_tutor_bookings(x_user_id))
+    return BookingListResponse(bookings=list_tutor_bookings(_require_user(x_user_id)))
+
+
+@router.post("/{booking_id}/complete", response_model=Booking)
+def complete_demo(
+    booking_id: str,
+    x_internal_secret: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None),
+):
+    _require_secret(x_internal_secret)
+    return complete_booking(booking_id, _require_user(x_user_id))
