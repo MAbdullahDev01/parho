@@ -25,15 +25,17 @@ class SafepayService:
 
     def _headers(self) -> dict[str, str]:
         self._require_config()
-        # Safepay's current API uses the secret key in x-sfpy-api-key.
         return {"x-sfpy-api-key": self.secret_key, "Content-Type": "application/json"}
 
     @staticmethod
     def _minor_units(amount_pkr: Decimal) -> int:
         return int((amount_pkr * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
-    async def create_checkout(self, *, amount_pkr: Decimal, booking_id: str, success_url: str, cancel_url: str) -> dict:
+    async def create_checkout(self, *, amount_pkr: Decimal, booking_id: str | None = None, success_url: str, cancel_url: str, metadata: dict | None = None) -> dict:
         amount = self._minor_units(amount_pkr)
+        checkout_metadata = dict(metadata or {})
+        if booking_id:
+            checkout_metadata["booking_id"] = booking_id
         payload = {
             "merchant_api_key": self.public_key,
             "intent": "CYBERSOURCE",
@@ -41,7 +43,7 @@ class SafepayService:
             "entry_mode": "raw",
             "currency": "PKR",
             "amount": amount,
-            "metadata": {"booking_id": booking_id},
+            "metadata": checkout_metadata,
             "include_fees": False,
         }
         try:
@@ -64,11 +66,7 @@ class SafepayService:
     async def authorize_payment(self, tracker: str) -> dict:
         try:
             async with httpx.AsyncClient(timeout=20) as client:
-                response = await client.post(
-                    f"{self.base_url}/order/payments/v3/{tracker}",
-                    headers=self._headers(),
-                    json={"payload": {"authorization": {"do_capture": False}}, "use_action_chaining": False},
-                )
+                response = await client.post(f"{self.base_url}/order/payments/v3/{tracker}", headers=self._headers(), json={"payload": {"authorization": {"do_capture": False}}, "use_action_chaining": False})
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPError as exc:
@@ -94,12 +92,6 @@ class SafepayService:
 
     @staticmethod
     def _decode_secret(secret: str) -> list[bytes]:
-        """Return accepted key representations used by Safepay endpoint secrets.
-
-        Current Safepay webhook documentation describes a base64-encoded shared
-        secret. Some dashboard/API versions have returned the shared secret as
-        a plain hexadecimal string, so we support that representation too.
-        """
         candidates: list[bytes] = []
         try:
             candidates.append(base64.b64decode(secret, validate=True))
@@ -116,45 +108,28 @@ class SafepayService:
         secret = getattr(settings, "SAFE_PAY_WEBHOOK_SECRET", None)
         if not secret or not signature:
             return False
-
-        # Safepay's current endpoint documentation signs timestamp + '.' + raw
-        # body. Timestamp is used when the header is present. We do not reject a
-        # request solely because a dashboard test delivery omits it; the HMAC is
-        # still required in every case.
         signing_payloads: list[bytes] = []
         if timestamp:
             try:
                 parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
                 if parsed.tzinfo is None:
                     return False
-                age = abs((datetime.now(timezone.utc) - parsed).total_seconds())
-                if age > 300:
+                if abs((datetime.now(timezone.utc) - parsed).total_seconds()) > 300:
                     return False
             except ValueError:
                 return False
             signing_payloads.append(timestamp.encode("utf-8") + b"." + raw_body)
         signing_payloads.append(raw_body)
-
         provided = signature.strip()
-        # Some Safepay webhook versions use `sha256=<hex>`, while older endpoint
-        # integrations expose the raw lowercase hex digest. Accept both while
-        # always comparing with hmac.compare_digest.
-        provided_candidates = [provided]
-        if provided.startswith("sha256="):
-            provided_candidates.append(provided[len("sha256="):])
-
+        candidates = [provided, provided[len("sha256="):] if provided.startswith("sha256=") else provided]
         for key in self._decode_secret(secret):
             for payload in signing_payloads:
-                digest256 = hmac.new(key, payload, hashlib.sha256).hexdigest()
-                expected = f"sha256={digest256}"
-                if any(hmac.compare_digest(candidate, expected) or hmac.compare_digest(candidate, digest256) for candidate in provided_candidates):
+                digest = hmac.new(key, payload, hashlib.sha256).hexdigest()
+                if any(hmac.compare_digest(c, digest) or hmac.compare_digest(c, f"sha256={digest}") for c in candidates):
                     return True
-
-                # Compatibility with Safepay's older webhook implementation.
                 digest512 = hmac.new(key, payload, hashlib.sha512).hexdigest()
-                if any(hmac.compare_digest(candidate, digest512) for candidate in provided_candidates):
+                if any(hmac.compare_digest(c, digest512) for c in candidates):
                     return True
-
         return False
 
 
