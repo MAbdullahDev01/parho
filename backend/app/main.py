@@ -4,8 +4,10 @@ from fastapi.exceptions import RequestValidationError
 from app.api.admin.route import router as admin_router
 from app.api.bookings.route import router as bookings_router
 from app.api.messages.route import router as messages_router
+from app.api.payments.route import router as payments_router
 from app.api.wallet.route import router as wallet_router
 from app.api.webhooks.router import router as webhooks_router
+from app.api.webhooks.safepay import router as safepay_webhook_router
 from app.api.users.route import router as user_router
 from app.api.tutors.route import router as tutor_router
 from app.api.tutor_discovery.route import router as tutor_discovery_router
@@ -16,11 +18,13 @@ app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 app.include_router(webhooks_router)
+app.include_router(safepay_webhook_router, prefix="/api/backend/webhooks")
 app.include_router(user_router)
 app.include_router(tutor_router)
 app.include_router(tutor_discovery_router)
 app.include_router(bookings_router)
 app.include_router(messages_router)
+app.include_router(payments_router)
 app.include_router(wallet_router)
 app.include_router(admin_router)
 
