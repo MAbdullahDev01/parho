@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
+from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 import httpx
@@ -88,13 +92,40 @@ class SafepayService:
             raise HTTPException(status_code=502, detail="Unable to verify Safepay payment.") from exc
 
     def verify_webhook(self, raw_body: bytes, signature: str | None, timestamp: str | None) -> bool:
-        import hashlib
-        import hmac
+        """Verify Safepay's current signed webhook format.
+
+        Safepay signs: timestamp + '.' + raw request body using the endpoint
+        secret. Current webhook secrets are base64 encoded and the signature
+        header is formatted as sha256=<lowercase hex digest>.
+        """
         secret = getattr(settings, "SAFE_PAY_WEBHOOK_SECRET", None)
         if not secret or not signature or not timestamp:
             return False
-        expected = hmac.new(secret.encode(), timestamp.encode() + b"." + raw_body, hashlib.sha256).hexdigest()
-        return any(hmac.compare_digest(signature, candidate) for candidate in (expected, f"v1={expected}", f"sha256={expected}"))
+
+        try:
+            parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                return False
+            age = abs((datetime.now(timezone.utc) - parsed).total_seconds())
+            if age > 300:
+                return False
+        except ValueError:
+            return False
+
+        try:
+            key = base64.b64decode(secret, validate=True)
+        except Exception:
+            # Keep compatibility with older endpoint secrets that were exposed
+            # as raw bytes/hex strings by earlier Safepay tooling.
+            try:
+                key = bytes.fromhex(secret)
+            except ValueError:
+                key = secret.encode()
+
+        signed_payload = timestamp.encode() + b"." + raw_body
+        digest = hmac.new(key, signed_payload, hashlib.sha256).hexdigest()
+        expected = f"sha256={digest}"
+        return hmac.compare_digest(signature.strip(), expected)
 
 
 safepay = SafepayService()
