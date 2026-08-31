@@ -38,15 +38,11 @@ class SafepayService:
     def _safe_response_body(response: httpx.Response) -> str:
         return response.text.replace("\n", " ").strip()[:1000]
 
-    @staticmethod
-    def _metadata_values(metadata: dict | None) -> dict[str, str]:
-        return {str(key): str(value).lower() if isinstance(value, bool) else str(value) for key, value in (metadata or {}).items()}
-
     async def create_checkout(self, *, amount_pkr: Decimal, booking_id: str | None = None, success_url: str, cancel_url: str, metadata: dict | None = None) -> dict:
         amount = self._minor_units(amount_pkr)
-        checkout_metadata = self._metadata_values(metadata)
-        if booking_id:
-            checkout_metadata["booking_id"] = booking_id
+        # Safepay validates metadata keys against its own schema. Keep Parho's
+        # internal metadata in payment_intents rather than sending unsupported
+        # arbitrary keys to the provider.
         payload = {
             "merchant_api_key": self.public_key,
             "intent": "CYBERSOURCE",
@@ -54,7 +50,6 @@ class SafepayService:
             "entry_mode": "raw",
             "currency": "PKR",
             "amount": amount,
-            "metadata": checkout_metadata,
             "include_fees": False,
         }
         try:
