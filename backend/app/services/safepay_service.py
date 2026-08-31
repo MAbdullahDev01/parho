@@ -36,12 +36,15 @@ class SafepayService:
 
     @staticmethod
     def _safe_response_body(response: httpx.Response) -> str:
-        text = response.text.replace("\n", " ").strip()
-        return text[:1000]
+        return response.text.replace("\n", " ").strip()[:1000]
+
+    @staticmethod
+    def _metadata_values(metadata: dict | None) -> dict[str, str]:
+        return {str(key): str(value).lower() if isinstance(value, bool) else str(value) for key, value in (metadata or {}).items()}
 
     async def create_checkout(self, *, amount_pkr: Decimal, booking_id: str | None = None, success_url: str, cancel_url: str, metadata: dict | None = None) -> dict:
         amount = self._minor_units(amount_pkr)
-        checkout_metadata = dict(metadata or {})
+        checkout_metadata = self._metadata_values(metadata)
         if booking_id:
             checkout_metadata["booking_id"] = booking_id
         payload = {
