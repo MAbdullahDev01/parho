@@ -27,8 +27,17 @@ export async function getStudentWallet() {
 
 export async function createSafepayDeposit(amount: number) {
   const id = await userId();
-  const request = backend('/api/backend/payments/safepay/checkout');
-  const response = await fetch(request.url, { method: 'POST', headers: { ...request.headers, 'x-user-id': id, 'content-type': 'application/json' }, body: JSON.stringify({ amount }) });
+  const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const request = backend('/api/backend/payments/safepay/wallet-deposit');
+  const response = await fetch(request.url, {
+    method: 'POST',
+    headers: { ...request.headers, 'x-user-id': id, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      amount,
+      success_url: `${origin}/dashboard/student/wallet?payment=success`,
+      cancel_url: `${origin}/dashboard/student/wallet?payment=cancelled`,
+    }),
+  });
   const data = await response.json().catch(() => null) as { checkout_url?: string; detail?: string } | null;
   if (!response.ok || !data?.checkout_url) throw new Error(data?.detail || 'Unable to start Safepay checkout.');
   return { checkout_url: data.checkout_url };
