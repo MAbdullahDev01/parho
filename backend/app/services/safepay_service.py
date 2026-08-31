@@ -17,25 +17,20 @@ logger = logging.getLogger(__name__)
 
 class SafepayService:
     def __init__(self) -> None:
-        self.secret_key = getattr(settings, "SAFE_PAY_SECRET_KEY", None)
+        self.api_key = getattr(settings, "SAFE_PAY_SECRET_KEY", None)
         self.public_key = getattr(settings, "SAFE_PAY_PUBLIC_KEY", None)
+        self.v1_secret = getattr(settings, "SAFE_PAY_V1_SECRET", None)
         self.webhook_secret = getattr(settings, "SAFE_PAY_WEBHOOK_SECRET", None)
         self.environment = getattr(settings, "SAFE_PAY_ENV", "sandbox")
         self.base_url = "https://sandbox.api.getsafepay.com" if self.environment == "sandbox" else "https://api.getsafepay.com"
 
     def _require_config(self) -> None:
-        if not self.secret_key or not self.public_key:
-            raise HTTPException(status_code=503, detail="Safepay is not configured.")
+        if not self.api_key or not self.public_key or not self.v1_secret:
+            raise HTTPException(status_code=503, detail="Safepay API key, public key, or v1 secret is not configured.")
 
     def _headers(self) -> dict[str, str]:
         self._require_config()
-        return {"X-SFPY-MERCHANT-SECRET": self.secret_key, "Content-Type": "application/json"}
-
-    def _passport_headers(self) -> dict[str, str]:
-        self._require_config()
-        if not self.webhook_secret:
-            raise HTTPException(status_code=503, detail="Safepay webhook secret is not configured.")
-        return {"X-SFPY-MERCHANT-SECRET": self.webhook_secret, "Content-Type": "application/json"}
+        return {"X-SFPY-MERCHANT-SECRET": self.v1_secret, "Content-Type": "application/json"}
 
     @staticmethod
     def _minor_units(amount_pkr: Decimal) -> int:
@@ -48,13 +43,11 @@ class SafepayService:
     async def create_checkout(self, *, amount_pkr: Decimal, booking_id: str | None = None, success_url: str, cancel_url: str, metadata: dict | None = None) -> dict:
         amount = self._minor_units(amount_pkr)
         payload = {
-            "merchant_api_key": self.public_key,
+            "merchant_api_key": self.api_key,
             "intent": "CYBERSOURCE",
             "mode": "payment",
-            "entry_mode": "raw",
             "currency": "PKR",
             "amount": amount,
-            "include_fees": False,
         }
         try:
             async with httpx.AsyncClient(timeout=20) as client:
@@ -63,9 +56,12 @@ class SafepayService:
                     logger.error("Safepay checkout initialization failed: status=%s body=%s", session_response.status_code, self._safe_response_body(session_response))
                     raise HTTPException(status_code=502, detail=f"Safepay checkout initialization failed ({session_response.status_code}).")
                 session_data = session_response.json()
-                tracker = session_data["data"]["tracker"]["token"]
+                tracker = session_data.get("data", {}).get("tracker", {}).get("token")
+                if not tracker:
+                    logger.error("Safepay order response did not contain tracker: body=%s", self._safe_response_body(session_response))
+                    raise HTTPException(status_code=502, detail="Safepay returned an invalid payment session.")
 
-                token_response = await client.post(f"{self.base_url}/client/passport/v1/token", headers=self._passport_headers())
+                token_response = await client.post(f"{self.base_url}/client/passport/v1/token", headers=self._headers())
                 if not token_response.is_success:
                     logger.error("Safepay passport token failed: status=%s body=%s", token_response.status_code, self._safe_response_body(token_response))
                     raise HTTPException(status_code=502, detail=f"Safepay checkout token request failed ({token_response.status_code}).")
@@ -133,7 +129,7 @@ class SafepayService:
         return [candidate for candidate in candidates if candidate]
 
     def verify_webhook(self, raw_body: bytes, signature: str | None, timestamp: str | None) -> bool:
-        secret = getattr(settings, "SAFE_PAY_WEBHOOK_SECRET", None)
+        secret = self.webhook_secret
         if not secret or not signature:
             return False
         signing_payloads: list[bytes] = []
