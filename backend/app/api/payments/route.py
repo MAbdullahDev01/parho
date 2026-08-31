@@ -1,39 +1,60 @@
-from decimal import Decimal
-
-from fastapi import APIRouter, Header, HTTPException
-from pydantic import BaseModel, Field, HttpUrl
+from fastapi import APIRouter, Header
+from pydantic import BaseModel, HttpUrl
 
 from app.api.dependencies import require_internal_secret
+from app.services.payment_service import create_booking_payment, authorize_booking_payment, capture_booking_payment
 from app.services.safepay_service import safepay
 
 router = APIRouter(prefix="/api/backend/payments", tags=["payments"])
 
 
-class SafepayCheckoutRequest(BaseModel):
+class BookingPaymentRequest(BaseModel):
     booking_id: str
-    amount_pkr: Decimal = Field(gt=0, decimal_places=2)
     success_url: HttpUrl
     cancel_url: HttpUrl
 
 
-class SafepayCheckoutResponse(BaseModel):
-    tracker: str
-    checkout_url: str
-    environment: str
+def _require(secret: str | None) -> None:
+    require_internal_secret(secret)
 
 
-@router.post("/safepay/checkout", response_model=SafepayCheckoutResponse)
+@router.post("/safepay/checkout")
 async def create_safepay_checkout(
-    payload: SafepayCheckoutRequest,
+    payload: BookingPaymentRequest,
     x_internal_secret: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None),
 ):
-    require_internal_secret(x_internal_secret)
-    return await safepay.create_checkout(
-        amount_pkr=payload.amount_pkr,
-        booking_id=payload.booking_id,
-        success_url=str(payload.success_url),
-        cancel_url=str(payload.cancel_url),
-    )
+    _require(x_internal_secret)
+    if not x_user_id:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=401, detail="User identity is required.")
+    return await create_booking_payment(x_user_id, payload.booking_id, str(payload.success_url), str(payload.cancel_url))
+
+
+@router.post("/safepay/{booking_id}/authorize")
+async def authorize_safepay_booking(
+    booking_id: str,
+    x_internal_secret: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None),
+):
+    _require(x_internal_secret)
+    if not x_user_id:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=401, detail="User identity is required.")
+    return await authorize_booking_payment(x_user_id, booking_id)
+
+
+@router.post("/safepay/{booking_id}/capture")
+async def capture_safepay_booking(
+    booking_id: str,
+    x_internal_secret: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None),
+):
+    _require(x_internal_secret)
+    if not x_user_id:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=401, detail="User identity is required.")
+    return await capture_booking_payment(x_user_id, booking_id)
 
 
 @router.get("/safepay/{tracker}")
@@ -41,5 +62,5 @@ async def get_safepay_payment(
     tracker: str,
     x_internal_secret: str | None = Header(default=None),
 ):
-    require_internal_secret(x_internal_secret)
+    _require(x_internal_secret)
     return await safepay.get_payment(tracker)
