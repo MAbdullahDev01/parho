@@ -28,7 +28,10 @@ class SafepayService:
 
     def _headers(self) -> dict[str, str]:
         self._require_config()
-        return {"x-sfpy-api-key": self.secret_key, "Content-Type": "application/json"}
+        return {
+            "X-SFPY-MERCHANT-SECRET": self.secret_key,
+            "Content-Type": "application/json",
+        }
 
     @staticmethod
     def _minor_units(amount_pkr: Decimal) -> int:
@@ -40,9 +43,6 @@ class SafepayService:
 
     async def create_checkout(self, *, amount_pkr: Decimal, booking_id: str | None = None, success_url: str, cancel_url: str, metadata: dict | None = None) -> dict:
         amount = self._minor_units(amount_pkr)
-        # Safepay validates metadata keys against its own schema. Keep Parho's
-        # internal metadata in payment_intents rather than sending unsupported
-        # arbitrary keys to the provider.
         payload = {
             "merchant_api_key": self.public_key,
             "intent": "CYBERSOURCE",
@@ -61,6 +61,9 @@ class SafepayService:
                 session_data = session_response.json()
                 tracker = session_data["data"]["tracker"]["token"]
 
+                # Safepay's passport endpoint authenticates with the merchant
+                # secret header (X-SFPY-MERCHANT-SECRET), as used by the
+                # official SDK's secret authentication mode.
                 token_response = await client.post(f"{self.base_url}/client/passport/v1/token", headers=self._headers())
                 if not token_response.is_success:
                     logger.error("Safepay passport token failed: status=%s body=%s", token_response.status_code, self._safe_response_body(token_response))
