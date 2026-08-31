@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import logging
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -10,6 +11,8 @@ import httpx
 from fastapi import HTTPException
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class SafepayService:
@@ -31,6 +34,11 @@ class SafepayService:
     def _minor_units(amount_pkr: Decimal) -> int:
         return int((amount_pkr * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
+    @staticmethod
+    def _safe_response_body(response: httpx.Response) -> str:
+        text = response.text.replace("\n", " ").strip()
+        return text[:1000]
+
     async def create_checkout(self, *, amount_pkr: Decimal, booking_id: str | None = None, success_url: str, cancel_url: str, metadata: dict | None = None) -> dict:
         amount = self._minor_units(amount_pkr)
         checkout_metadata = dict(metadata or {})
@@ -49,13 +57,22 @@ class SafepayService:
         try:
             async with httpx.AsyncClient(timeout=20) as client:
                 session_response = await client.post(f"{self.base_url}/order/payments/v3/", headers=self._headers(), json=payload)
-                session_response.raise_for_status()
-                tracker = session_response.json()["data"]["tracker"]["token"]
+                if not session_response.is_success:
+                    logger.error("Safepay checkout initialization failed: status=%s body=%s", session_response.status_code, self._safe_response_body(session_response))
+                    raise HTTPException(status_code=502, detail=f"Safepay checkout initialization failed ({session_response.status_code}).")
+                session_data = session_response.json()
+                tracker = session_data["data"]["tracker"]["token"]
+
                 token_response = await client.post(f"{self.base_url}/client/passport/v1/token", headers=self._headers())
-                token_response.raise_for_status()
+                if not token_response.is_success:
+                    logger.error("Safepay passport token failed: status=%s body=%s", token_response.status_code, self._safe_response_body(token_response))
+                    raise HTTPException(status_code=502, detail=f"Safepay checkout token request failed ({token_response.status_code}).")
                 auth_token = token_response.json()["data"]
+        except HTTPException:
+            raise
         except (httpx.HTTPError, KeyError, TypeError, ValueError) as exc:
-            raise HTTPException(status_code=502, detail="Unable to initialize Safepay checkout.") from exc
+            logger.exception("Safepay checkout initialization raised an exception")
+            raise HTTPException(status_code=502, detail="Unable to initialize Safepay checkout. Check the backend logs for the provider response.") from exc
 
         checkout_url = (
             f"{self.base_url}/checkout?tracker={tracker}&tbt={auth_token}&environment={self.environment}"
@@ -70,6 +87,7 @@ class SafepayService:
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPError as exc:
+            logger.exception("Safepay authorization failed")
             raise HTTPException(status_code=502, detail="Unable to authorize Safepay payment.") from exc
 
     async def capture_payment(self, tracker: str) -> dict:
@@ -79,6 +97,7 @@ class SafepayService:
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPError as exc:
+            logger.exception("Safepay capture failed")
             raise HTTPException(status_code=502, detail="Unable to capture Safepay payment.") from exc
 
     async def get_payment(self, tracker: str) -> dict:
@@ -88,6 +107,7 @@ class SafepayService:
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPError as exc:
+            logger.exception("Safepay payment verification failed")
             raise HTTPException(status_code=502, detail="Unable to verify Safepay payment.") from exc
 
     @staticmethod
