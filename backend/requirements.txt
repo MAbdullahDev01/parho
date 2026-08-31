@@ -18,10 +18,9 @@ fastapi-cloud-cli==0.23.0
 fastar==0.11.0
 h11==0.16.0
 h2==4.4.1
-hpack==4.2.0
+hpack==4.2.1
 httpcore==1.0.9
 httpcore2==2.12.0
-httptools==0.8.0
 httpx==0.28.1
 httpx2==2.12.0
 hyperframe==6.1.0
@@ -30,7 +29,7 @@ Jinja2==3.1.6
 jiter==0.16.0
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
-mdurl==0.1.2
+mdurl==0.1.0
 multidict==6.7.1
 openai==3.3.1
 packaging==26.3
@@ -59,6 +58,7 @@ standardwebhooks==1.1.0
 starlette==1.6.0
 storage3==2.31.0
 StrEnum==0.4.15
+stripe>=12.0,<14.0
 supabase==2.31.0
 supabase-auth==2.31.0
 supabase-functions==2.31.0
