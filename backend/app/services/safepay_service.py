@@ -19,6 +19,7 @@ class SafepayService:
     def __init__(self) -> None:
         self.secret_key = getattr(settings, "SAFE_PAY_SECRET_KEY", None)
         self.public_key = getattr(settings, "SAFE_PAY_PUBLIC_KEY", None)
+        self.webhook_secret = getattr(settings, "SAFE_PAY_WEBHOOK_SECRET", None)
         self.environment = getattr(settings, "SAFE_PAY_ENV", "sandbox")
         self.base_url = "https://sandbox.api.getsafepay.com" if self.environment == "sandbox" else "https://api.getsafepay.com"
 
@@ -28,10 +29,13 @@ class SafepayService:
 
     def _headers(self) -> dict[str, str]:
         self._require_config()
-        return {
-            "X-SFPY-MERCHANT-SECRET": self.secret_key,
-            "Content-Type": "application/json",
-        }
+        return {"X-SFPY-MERCHANT-SECRET": self.secret_key, "Content-Type": "application/json"}
+
+    def _passport_headers(self) -> dict[str, str]:
+        self._require_config()
+        if not self.webhook_secret:
+            raise HTTPException(status_code=503, detail="Safepay webhook secret is not configured.")
+        return {"X-SFPY-MERCHANT-SECRET": self.webhook_secret, "Content-Type": "application/json"}
 
     @staticmethod
     def _minor_units(amount_pkr: Decimal) -> int:
@@ -61,14 +65,17 @@ class SafepayService:
                 session_data = session_response.json()
                 tracker = session_data["data"]["tracker"]["token"]
 
-                # Safepay's passport endpoint authenticates with the merchant
-                # secret header (X-SFPY-MERCHANT-SECRET), as used by the
-                # official SDK's secret authentication mode.
-                token_response = await client.post(f"{self.base_url}/client/passport/v1/token", headers=self._headers())
+                token_response = await client.post(f"{self.base_url}/client/passport/v1/token", headers=self._passport_headers())
                 if not token_response.is_success:
                     logger.error("Safepay passport token failed: status=%s body=%s", token_response.status_code, self._safe_response_body(token_response))
                     raise HTTPException(status_code=502, detail=f"Safepay checkout token request failed ({token_response.status_code}).")
-                auth_token = token_response.json()["data"]
+                token_data = token_response.json()
+                auth_token = token_data.get("data")
+                if isinstance(auth_token, dict):
+                    auth_token = auth_token.get("token")
+                if not auth_token:
+                    logger.error("Safepay passport token response did not contain a token: body=%s", self._safe_response_body(token_response))
+                    raise HTTPException(status_code=502, detail="Safepay returned an invalid checkout token response.")
         except HTTPException:
             raise
         except (httpx.HTTPError, KeyError, TypeError, ValueError) as exc:
