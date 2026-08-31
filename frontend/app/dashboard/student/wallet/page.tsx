@@ -1,6 +1,7 @@
 import { WalletCards, ArrowDownToLine, LockKeyhole, ArrowUpRight } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { getStudentWallet } from './_actions';
+import AddFundsForm from './AddFundsForm';
 
 function money(amount: number) {
   return new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 2 }).format(amount);
@@ -16,10 +17,13 @@ export default async function StudentWalletPage() {
   const { wallet, transactions } = await getStudentWallet();
   return (
     <div>
-      <div>
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-600">Payments</p>
-        <h1 className="mt-1 font-display text-2xl font-semibold text-ink">Wallet</h1>
-        <p className="mt-1 text-sm text-slate-500">Your PKR balance and session payment history.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-emerald-600">Payments</p>
+          <h1 className="mt-1 font-display text-2xl font-semibold text-ink">Wallet</h1>
+          <p className="mt-1 text-sm text-slate-500">Add PKR funds securely through Safepay and manage session payments.</p>
+        </div>
+        <AddFundsForm />
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -51,8 +55,6 @@ export default async function StudentWalletPage() {
           </div>
         )}
       </Card>
-
-      <p className="mt-5 text-xs text-slate-400">Online top-ups will be enabled after the Pakistan payment gateway integration is selected and configured.</p>
     </div>
   );
 }
