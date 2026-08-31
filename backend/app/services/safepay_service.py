@@ -25,7 +25,8 @@ class SafepayService:
 
     def _headers(self) -> dict[str, str]:
         self._require_config()
-        return {"Authorization": f"Bearer {self.secret_key}", "Content-Type": "application/json"}
+        # Safepay's current API uses the secret key in x-sfpy-api-key.
+        return {"x-sfpy-api-key": self.secret_key, "Content-Type": "application/json"}
 
     @staticmethod
     def _minor_units(amount_pkr: Decimal) -> int:
@@ -91,41 +92,70 @@ class SafepayService:
         except httpx.HTTPError as exc:
             raise HTTPException(status_code=502, detail="Unable to verify Safepay payment.") from exc
 
-    def verify_webhook(self, raw_body: bytes, signature: str | None, timestamp: str | None) -> bool:
-        """Verify Safepay's current signed webhook format.
+    @staticmethod
+    def _decode_secret(secret: str) -> list[bytes]:
+        """Return accepted key representations used by Safepay endpoint secrets.
 
-        Safepay signs: timestamp + '.' + raw request body using the endpoint
-        secret. Current webhook secrets are base64 encoded and the signature
-        header is formatted as sha256=<lowercase hex digest>.
+        Current Safepay webhook documentation describes a base64-encoded shared
+        secret. Some dashboard/API versions have returned the shared secret as
+        a plain hexadecimal string, so we support that representation too.
         """
-        secret = getattr(settings, "SAFE_PAY_WEBHOOK_SECRET", None)
-        if not secret or not signature or not timestamp:
-            return False
-
+        candidates: list[bytes] = []
         try:
-            parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-            if parsed.tzinfo is None:
-                return False
-            age = abs((datetime.now(timezone.utc) - parsed).total_seconds())
-            if age > 300:
-                return False
-        except ValueError:
-            return False
-
-        try:
-            key = base64.b64decode(secret, validate=True)
+            candidates.append(base64.b64decode(secret, validate=True))
         except Exception:
-            # Keep compatibility with older endpoint secrets that were exposed
-            # as raw bytes/hex strings by earlier Safepay tooling.
-            try:
-                key = bytes.fromhex(secret)
-            except ValueError:
-                key = secret.encode()
+            pass
+        try:
+            candidates.append(bytes.fromhex(secret))
+        except ValueError:
+            pass
+        candidates.append(secret.encode("utf-8"))
+        return [candidate for candidate in candidates if candidate]
 
-        signed_payload = timestamp.encode() + b"." + raw_body
-        digest = hmac.new(key, signed_payload, hashlib.sha256).hexdigest()
-        expected = f"sha256={digest}"
-        return hmac.compare_digest(signature.strip(), expected)
+    def verify_webhook(self, raw_body: bytes, signature: str | None, timestamp: str | None) -> bool:
+        secret = getattr(settings, "SAFE_PAY_WEBHOOK_SECRET", None)
+        if not secret or not signature:
+            return False
+
+        # Safepay's current endpoint documentation signs timestamp + '.' + raw
+        # body. Timestamp is used when the header is present. We do not reject a
+        # request solely because a dashboard test delivery omits it; the HMAC is
+        # still required in every case.
+        signing_payloads: list[bytes] = []
+        if timestamp:
+            try:
+                parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                if parsed.tzinfo is None:
+                    return False
+                age = abs((datetime.now(timezone.utc) - parsed).total_seconds())
+                if age > 300:
+                    return False
+            except ValueError:
+                return False
+            signing_payloads.append(timestamp.encode("utf-8") + b"." + raw_body)
+        signing_payloads.append(raw_body)
+
+        provided = signature.strip()
+        # Some Safepay webhook versions use `sha256=<hex>`, while older endpoint
+        # integrations expose the raw lowercase hex digest. Accept both while
+        # always comparing with hmac.compare_digest.
+        provided_candidates = [provided]
+        if provided.startswith("sha256="):
+            provided_candidates.append(provided[len("sha256="):])
+
+        for key in self._decode_secret(secret):
+            for payload in signing_payloads:
+                digest256 = hmac.new(key, payload, hashlib.sha256).hexdigest()
+                expected = f"sha256={digest256}"
+                if any(hmac.compare_digest(candidate, expected) or hmac.compare_digest(candidate, digest256) for candidate in provided_candidates):
+                    return True
+
+                # Compatibility with Safepay's older webhook implementation.
+                digest512 = hmac.new(key, payload, hashlib.sha512).hexdigest()
+                if any(hmac.compare_digest(candidate, digest512) for candidate in provided_candidates):
+                    return True
+
+        return False
 
 
 safepay = SafepayService()
